@@ -266,7 +266,9 @@ function ejemplo(parametro1, parametro2) {
 2. `dat` - borra el tag p completo
 3. `ci"` - cambia el valor de class
 
-### Dia 5-6: Busqueda en Linea
+### Dia 5-6: Busqueda en Linea y Diagnósticos
+
+#### Busqueda en Linea
 
 | Tecla | Accion |
 |-------|--------|
@@ -285,6 +287,24 @@ const resultado = calcular(valor1, valor2);
 - `f,` - salta a la primera `,`
 - `;` - salta a la siguiente `,`
 - `ct)` - cambia hasta antes del `)`
+
+#### Diagnósticos y Quick Fixes
+
+Ahora que editas como un pro, es hora de arreglar errores como un pro.
+
+| Comando | Accion |
+|---------|--------|
+| `]d` | Ir al siguiente error/warning |
+| `[d` | Ir al anterior |
+| `<leader>.` | **Quick Fix** (como `Ctrl+.` en VSCode) |
+| `<leader>xx` | Abrir panel de problemas |
+
+**Practica:**
+1. Introduce un error en tu codigo (ej: una variable mal escrita).
+2. Usa `]d` y `[d` para saltar al error.
+3. Con el cursor sobre el error, presiona `<leader>.`
+4. Selecciona la correccion y presiona `Enter`.
+5. Abre el panel de problemas con `<leader>xx` para ver todos los errores del proyecto.
 
 ### Dia 7: Numeros + Comandos
 

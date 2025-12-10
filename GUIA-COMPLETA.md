@@ -333,8 +333,7 @@ Los text objects permiten operar sobre estructuras de texto.
 
 | Comando | Accion |
 |---------|--------|
-| `Alt+j` | Mover linea abajo |
-| `Alt+k` | Mover linea arriba |
+| `Alt+Shift+j/k` | Mover linea arriba/abajo |
 | `:m +1` | Mover linea abajo |
 | `:m -2` | Mover linea arriba |
 
@@ -1156,6 +1155,15 @@ cit
 ├─────────────────────────────────────────────────────────────┤
 │  Ctrl+h/j/k/l  Navegar ventanas                             │
 │  <leader>e     Explorador                                   │
+│  <leader>ff    Buscar archivos                              │
+│  <leader>fg    Buscar texto                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+**Feliz coding!** 
+     │
 │  <leader>ff    Buscar archivos                              │
 │  <leader>fg    Buscar texto                                 │
 └─────────────────────────────────────────────────────────────┘

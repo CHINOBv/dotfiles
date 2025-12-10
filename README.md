@@ -160,6 +160,8 @@ mkdir C:\tools\netcoredbg -Force
 
 | Plugin | Descripcion |
 |--------|-------------|
+| **trouble.nvim** | Panel de diagnósticos (problemas) |
+| **tiny-inline-diagnostic** | UI mejorada para errores inline |
 | **catppuccin** | Tema Mocha con transparencia |
 | **roslyn.nvim** | LSP para C# (IntelliSense) |
 | **nvim-dap** | Debugging con fix para Windows paths |
