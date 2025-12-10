@@ -1,64 +1,33 @@
--- Animaciones y scroll suave
+-- Animaciones (desactivadas scroll/cursor para evitar problemas con gd, búsqueda, etc.)
 return {
-  -- Neoscroll - scroll suave
+  -- Desactivar neoscroll - causa problemas con saltos grandes y búsqueda
   {
     "karb94/neoscroll.nvim",
-    event = "VeryLazy",
-    opts = {
-      mappings = { "<C-u>", "<C-d>", "<C-b>", "<C-f>", "<C-y>", "<C-e>", "zt", "zz", "zb" },
-      hide_cursor = true,
-      stop_eof = true,
-      respect_scrolloff = false,
-      cursor_scrolls_alone = true,
-      easing_function = "sine",
-      pre_hook = nil,
-      post_hook = nil,
-      performance_mode = false,
-    },
+    enabled = false,
   },
 
-  -- Mini.animate - animaciones de cursor y ventanas
+  -- Mini.animate - SOLO animaciones de ventanas (NO scroll ni cursor)
   {
-    "nvim-mini/mini.animate",
+    "echasnovski/mini.animate",
     event = "VeryLazy",
     opts = function()
-      -- No animar durante macros o con muchas lineas
-      local mouse_scrolled = false
-      for _, scroll in ipairs({ "Up", "Down" }) do
-        local key = "<ScrollWheel" .. scroll .. ">"
-        vim.keymap.set({ "", "i" }, key, function()
-          mouse_scrolled = true
-          return key
-        end, { expr = true })
-      end
-
       local animate = require("mini.animate")
       return {
+        -- DESACTIVAR scroll y cursor - causan problemas con gd, /, n, N en archivos grandes
+        scroll = { enable = false },
+        cursor = { enable = false },
+        
+        -- Mantener solo animaciones de ventanas (no afectan navegación)
         resize = {
           timing = animate.gen_timing.linear({ duration = 100, unit = "total" }),
         },
-        scroll = {
-          timing = animate.gen_timing.linear({ duration = 150, unit = "total" }),
-          subscroll = animate.gen_subscroll.equal({
-            predicate = function(total_scroll)
-              if mouse_scrolled then
-                mouse_scrolled = false
-                return false
-              end
-              return total_scroll > 1
-            end,
-          }),
-        },
-        cursor = {
-          timing = animate.gen_timing.linear({ duration = 80, unit = "total" }),
-        },
         open = {
-          timing = animate.gen_timing.linear({ duration = 150, unit = "total" }),
+          timing = animate.gen_timing.linear({ duration = 100, unit = "total" }),
           winconfig = animate.gen_winconfig.wipe({ direction = "from_edge" }),
           winblend = animate.gen_winblend.linear({ from = 80, to = 0 }),
         },
         close = {
-          timing = animate.gen_timing.linear({ duration = 150, unit = "total" }),
+          timing = animate.gen_timing.linear({ duration = 100, unit = "total" }),
           winconfig = animate.gen_winconfig.wipe({ direction = "to_edge" }),
           winblend = animate.gen_winblend.linear({ from = 0, to = 80 }),
         },
@@ -66,9 +35,9 @@ return {
     end,
   },
 
-  -- Animacion de indentacion
+  -- Animacion de indentacion (no afecta navegación)
   {
-    "nvim-mini/mini.indentscope",
+    "echasnovski/mini.indentscope",
     version = false,
     event = "LazyFile",
     opts = {
