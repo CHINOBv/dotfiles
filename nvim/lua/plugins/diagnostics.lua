@@ -1,45 +1,19 @@
 -- Diagnosticos y Quick Fixes (similar a VSCode Problems panel)
 return {
-  -- Trouble - Panel de diagnosticos mejorado
+  -- Trouble v3 - Panel de diagnosticos mejorado
   {
     "folke/trouble.nvim",
-    cmd = { "Trouble", "TroubleToggle" },
     opts = {
-      position = "bottom",
-      height = 12,
-      icons = true,
-      mode = "workspace_diagnostics",
-      fold_open = "",
-      fold_closed = "",
-      group = true,
-      padding = true,
-      action_keys = {
-        close = "q",
-        cancel = "<esc>",
-        refresh = "r",
-        jump = { "<cr>", "<tab>" },
-        open_split = { "<c-x>" },
-        open_vsplit = { "<c-v>" },
-        open_tab = { "<c-t>" },
-        jump_close = { "o" },
-        toggle_mode = "m",
-        toggle_preview = "P",
-        hover = "K",
-        preview = "p",
-        close_folds = { "zM", "zm" },
-        open_folds = { "zR", "zr" },
-        toggle_fold = { "zA", "za" },
-        previous = "k",
-        next = "j",
+      modes = {
+        diagnostics = {
+          auto_close = false,
+          auto_open = false,
+          auto_preview = true,
+          auto_refresh = true,
+          focus = true,
+          win = { position = "bottom", size = 12 },
+        },
       },
-      signs = {
-        error = "",
-        warning = "",
-        hint = "",
-        information = "",
-        other = "",
-      },
-      use_diagnostic_signs = true,
     },
     keys = {
       { "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", desc = "Diagnostics (Trouble)" },
@@ -48,31 +22,6 @@ return {
       { "<leader>xl", "<cmd>Trouble lsp toggle focus=false win.position=right<cr>", desc = "LSP Definitions/References" },
       { "<leader>xL", "<cmd>Trouble loclist toggle<cr>", desc = "Location List" },
       { "<leader>xQ", "<cmd>Trouble qflist toggle<cr>", desc = "Quickfix List" },
-      -- Navegacion rapida con [ y ]
-      {
-        "[q",
-        function()
-          if require("trouble").is_open() then
-            require("trouble").prev({ skip_groups = true, jump = true })
-          else
-            local ok, err = pcall(vim.cmd.cprev)
-            if not ok then vim.notify(err, vim.log.levels.ERROR) end
-          end
-        end,
-        desc = "Previous Trouble/Quickfix"
-      },
-      {
-        "]q",
-        function()
-          if require("trouble").is_open() then
-            require("trouble").next({ skip_groups = true, jump = true })
-          else
-            local ok, err = pcall(vim.cmd.cnext)
-            if not ok then vim.notify(err, vim.log.levels.ERROR) end
-          end
-        end,
-        desc = "Next Trouble/Quickfix"
-      },
     },
   },
 
@@ -96,17 +45,6 @@ return {
       })
     end,
   },
-
-  -- Lsp Lines - Mostrar diagnosticos como lineas virtuales (alternativa)
-  -- Descomenta si prefieres este estilo sobre tiny-inline-diagnostic
-  -- {
-  --   "https://git.sr.ht/~whynothugo/lsp_lines.nvim",
-  --   event = "LspAttach",
-  --   config = function()
-  --     require("lsp_lines").setup()
-  --     vim.diagnostic.config({ virtual_text = false })
-  --   end,
-  -- },
 
   -- Keymaps adicionales para diagnosticos
   {
