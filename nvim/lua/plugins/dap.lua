@@ -174,6 +174,42 @@ return {
       vim.fn.sign_define("DapStopped", { text = "→", texthl = "DiagnosticOk", linehl = "Visual" })
       vim.fn.sign_define("DapBreakpointRejected", { text = "○", texthl = "DiagnosticError" })
 
+      -- Función para compilar proyecto antes de debug
+      local function build_project(project_cwd, callback)
+        vim.notify("Building project...", vim.log.levels.INFO)
+        
+        local cmd = string.format('dotnet build "%s" --no-restore', project_cwd)
+        
+        vim.fn.jobstart(cmd, {
+          on_exit = function(_, exit_code)
+            if exit_code == 0 then
+              vim.notify("Build successful!", vim.log.levels.INFO)
+              callback(true)
+            else
+              vim.notify("Build failed! Check :messages for details.", vim.log.levels.ERROR)
+              callback(false)
+            end
+          end,
+          on_stdout = function(_, data)
+            for _, line in ipairs(data) do
+              if line and line ~= "" then
+                -- Mostrar errores de compilación
+                if line:match("error") then
+                  vim.notify(line, vim.log.levels.ERROR)
+                end
+              end
+            end
+          end,
+          on_stderr = function(_, data)
+            for _, line in ipairs(data) do
+              if line and line ~= "" and line:match("error") then
+                vim.notify(line, vim.log.levels.ERROR)
+              end
+            end
+          end,
+        })
+      end
+
       -- Función para iniciar debug de .NET (busca proyectos dinámicamente)
       local function start_dotnet_debug()
         -- Refrescar la lista de proyectos cada vez
@@ -192,7 +228,22 @@ return {
           end,
         }, function(selected)
           if selected then
-            dap.run(selected)
+            -- Compilar antes de iniciar debug
+            local project_cwd = type(selected.cwd) == "function" and selected.cwd() or selected.cwd
+            build_project(project_cwd, function(success)
+              if success then
+                -- Refrescar la config para obtener el DLL más reciente
+                local fresh_configs = find_project_dlls()
+                for _, cfg in ipairs(fresh_configs) do
+                  if cfg.name == selected.name then
+                    dap.run(cfg)
+                    return
+                  end
+                end
+                -- Si no encuentra, usar la config original
+                dap.run(selected)
+              end
+            end)
           end
         end)
       end
