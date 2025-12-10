@@ -1,0 +1,23 @@
+# Neovim
+nvim/plugin/
+nvim/.luarc.json
+nvim/lazy-lock.json
+
+# YASB logs
+yasb/*.log*
+yasb/*.backup
+yasb/todo.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Backups
+*.bak
+*.bak.*
