@@ -103,7 +103,10 @@ return {
               color = "pink",
               invoke_on_body = true,
               hint = {
-                border = "rounded",
+                type = "window",
+                float_opts = {
+                  border = "rounded",
+                },
                 position = "bottom",
               },
             },
