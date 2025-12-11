@@ -2,8 +2,10 @@
 return {
   {
     "Exafunction/codeium.vim",
-    event = "InsertEnter",
+    event = "VeryLazy",
     config = function()
+      -- Highlight para las sugerencias (gris)
+      vim.api.nvim_set_hl(0, "CodeiumSuggestion", { fg = "#6e7681", italic = true })
       -- Tab para aceptar sugerencia
       vim.keymap.set("i", "<Tab>", function()
         if vim.fn["codeium#Accept"]() ~= "" then
