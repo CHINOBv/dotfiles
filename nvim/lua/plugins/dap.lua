@@ -20,11 +20,58 @@ return {
       {
         "rcarriga/nvim-dap-ui",
         dependencies = { "nvim-neotest/nvim-nio" },
-        opts = {},
-        config = function(_, opts)
+        config = function()
           local dap = require("dap")
           local dapui = require("dapui")
-          dapui.setup(opts)
+          
+          dapui.setup({
+            controls = {
+              enabled = true,
+              element = "repl",
+              icons = {
+                disconnect = "",
+                pause = "",
+                play = "",
+                run_last = "",
+                step_back = "",
+                step_into = "",
+                step_out = "",
+                step_over = "",
+                terminate = "",
+              },
+            },
+            layouts = {
+              {
+                elements = {
+                  { id = "scopes", size = 0.35 },
+                  { id = "breakpoints", size = 0.15 },
+                  { id = "stacks", size = 0.25 },
+                  { id = "watches", size = 0.25 },
+                },
+                size = 50,
+                position = "left",
+              },
+              {
+                elements = {
+                  { id = "repl", size = 0.5 },
+                  { id = "console", size = 0.5 },
+                },
+                size = 0.25,
+                position = "bottom",
+              },
+            },
+            floating = {
+              border = "rounded",
+              mappings = {
+                close = { "q", "<Esc>" },
+              },
+            },
+            render = {
+              max_type_length = nil,
+              max_value_lines = 100,
+            },
+          })
+          
           dap.listeners.after.event_initialized["dapui_config"] = function()
             dapui.open({})
           end
