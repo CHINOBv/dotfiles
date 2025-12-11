@@ -22,9 +22,6 @@ return {
       { "<leader>b5", "<cmd>BufferLineGoToBuffer 5<cr>", desc = "Go to Buffer 5" },
       { "<leader>bh", "<cmd>BufferLineMovePrev<cr>", desc = "Move Buffer Left" },
       { "<leader>bj", "<cmd>BufferLineMoveNext<cr>", desc = "Move Buffer Right" },
-      -- Tab navigation rápida
-      { "<Tab>", "<cmd>BufferLineCycleNext<cr>", desc = "Next Buffer" },
-      { "<S-Tab>", "<cmd>BufferLineCyclePrev<cr>", desc = "Previous Buffer" },
       -- Alt+número para ir directamente a un buffer
       { "<A-1>", "<cmd>BufferLineGoToBuffer 1<cr>", desc = "Buffer 1" },
       { "<A-2>", "<cmd>BufferLineGoToBuffer 2<cr>", desc = "Buffer 2" },
