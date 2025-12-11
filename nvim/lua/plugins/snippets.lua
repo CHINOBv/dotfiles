@@ -420,27 +420,6 @@ public void Dispose()
         enable_autosnippets = true,
       })
     end,
-    keys = {
-      {
-        "<Tab>",
-        function()
-          if require("luasnip").expand_or_jumpable() then
-            require("luasnip").expand_or_jump()
-          else
-            return "<Tab>"
-          end
-        end,
-        expr = true,
-        silent = true,
-        mode = { "i", "s" },
-      },
-      {
-        "<S-Tab>",
-        function()
-          require("luasnip").jump(-1)
-        end,
-        mode = { "i", "s" },
-      },
-    },
+    -- Tab/S-Tab para snippets ya está manejado por LazyVim/nvim-cmp
   },
 }
