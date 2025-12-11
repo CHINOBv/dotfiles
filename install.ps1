@@ -125,6 +125,17 @@ if (-not $SkipYASB) {
     Write-Host "    Reinicia YASB para aplicar cambios" -ForegroundColor Gray
 }
 
+# ===== GZIP (requerido para Codeium) =====
+Write-Step "Verificando gzip..."
+$gzipPath = Get-Command gzip -ErrorAction SilentlyContinue
+if (-not $gzipPath) {
+    Write-Warning "gzip no encontrado. Instalando con winget..."
+    winget install GnuWin32.Gzip --accept-source-agreements --accept-package-agreements
+    Write-Success "gzip instalado"
+} else {
+    Write-Success "gzip ya esta instalado"
+}
+
 # ===== RESUMEN =====
 Write-Host @"
 
@@ -141,10 +152,15 @@ Proximos pasos:
 2. Abrir Neovim para instalar plugins:
    nvim
 
-3. Recargar GlazeWM:
+3. Configurar Codeium (AI autocompletado):
+   - En Neovim ejecutar:  :Codeium Auth
+   - Seguir las instrucciones en el navegador
+   - Pegar el token cuando se solicite
+
+4. Recargar GlazeWM:
    Alt+Shift+R
 
-4. Reiniciar YASB
+5. Reiniciar YASB
 
 Documentacion:
 - GUIA-COMPLETA.md    - Referencia de keymaps
