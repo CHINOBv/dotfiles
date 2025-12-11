@@ -201,49 +201,11 @@ return {
     },
   },
 
-  -- ============================================================
-  -- SCROLLBAR VISUAL
-  -- ============================================================
-  {
-    "petertriho/nvim-scrollbar",
-    event = "BufReadPost",
-    opts = {
-      show = true,
-      show_in_active_only = false,
-      set_highlights = true,
-      folds = 1000,
-      max_lines = false,
-      hide_if_all_visible = true,
-      throttle_ms = 100,
-      handle = {
-        text = " ",
-        blend = 30,
-        color = "#fab387",
-        color_nr = nil,
-        highlight = "CursorColumn",
-        hide_if_all_visible = true,
-      },
-      marks = {
-        Cursor = { text = "•", priority = 0, gui = nil, color = nil, cterm = nil, highlight = "Normal" },
-        Search = { text = { "-", "=" }, priority = 1, color = "#f9e2af", highlight = "Search" },
-        Error = { text = { "-", "=" }, priority = 2, color = "#f38ba8", highlight = "DiagnosticError" },
-        Warn = { text = { "-", "=" }, priority = 3, color = "#fab387", highlight = "DiagnosticWarn" },
-        Info = { text = { "-", "=" }, priority = 4, color = "#89b4fa", highlight = "DiagnosticInfo" },
-        Hint = { text = { "-", "=" }, priority = 5, color = "#a6e3a1", highlight = "DiagnosticHint" },
-        Misc = { text = { "-", "=" }, priority = 6, color = "#cba6f7", highlight = "Normal" },
-        GitAdd = { text = "┃", priority = 7, color = "#a6e3a1", highlight = "GitSignsAdd" },
-        GitChange = { text = "┃", priority = 7, color = "#f9e2af", highlight = "GitSignsChange" },
-        GitDelete = { text = "▁", priority = 7, color = "#f38ba8", highlight = "GitSignsDelete" },
-      },
-      handlers = {
-        cursor = true,
-        diagnostic = true,
-        gitsigns = true,
-        handle = true,
-        search = true,
-      },
-    },
-  },
+  -- SCROLLBAR desactivado (causa errores y no aporta mucho valor)
+  -- {
+  --   "petertriho/nvim-scrollbar",
+  --   enabled = false,
+  -- },
 
   -- ============================================================
   -- COLORIZER (preview de colores en código)
