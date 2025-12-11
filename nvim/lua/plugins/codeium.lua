@@ -1,33 +1,35 @@
--- Codeium: AI autocompletado gratuito (compatible con blink.cmp)
+-- Codeium: AI autocompletado gratuito (versión vim - independiente)
 return {
   {
-    "Exafunction/codeium.nvim",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-    },
+    "Exafunction/codeium.vim",
     event = "InsertEnter",
-    opts = {
-      enable_chat = true,
-    },
-  },
+    config = function()
+      -- Tab para aceptar sugerencia
+      vim.keymap.set("i", "<Tab>", function()
+        if vim.fn["codeium#Accept"]() ~= "" then
+          return vim.fn["codeium#Accept"]()
+        else
+          return "\t"
+        end
+      end, { expr = true, silent = true })
 
-  -- Agregar codeium como fuente de blink.cmp
-  {
-    "saghen/blink.cmp",
-    optional = true,
-    dependencies = { "Exafunction/codeium.nvim" },
-    opts = {
-      sources = {
-        default = { "codeium", "lsp", "path", "snippets", "buffer" },
-        providers = {
-          codeium = {
-            name = "codeium",
-            module = "codeium.blink",
-            async = true,
-            score_offset = 100,
-          },
-        },
-      },
-    },
+      -- Alt+] para siguiente sugerencia
+      vim.keymap.set("i", "<A-]>", function()
+        return vim.fn["codeium#CycleCompletions"](1)
+      end, { expr = true, silent = true })
+
+      -- Alt+[ para sugerencia anterior
+      vim.keymap.set("i", "<A-[>", function()
+        return vim.fn["codeium#CycleCompletions"](-1)
+      end, { expr = true, silent = true })
+
+      -- Ctrl+] para cancelar sugerencia
+      vim.keymap.set("i", "<C-]>", function()
+        return vim.fn["codeium#Clear"]()
+      end, { expr = true, silent = true })
+
+      -- Desactivar el keymap por defecto de Tab de codeium
+      vim.g.codeium_no_map_tab = true
+    end,
   },
 }
