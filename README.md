@@ -1,13 +1,14 @@
-# Dotfiles - Windows 11 Development Environment
+# Dotfiles - Cross-Platform Development Environment
 
 <p align="center">
   <img src="https://img.shields.io/badge/Neovim-0.10+-57A143?style=for-the-badge&logo=neovim&logoColor=white" alt="Neovim"/>
   <img src="https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet&logoColor=white" alt=".NET"/>
   <img src="https://img.shields.io/badge/Windows-11-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows"/>
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux"/>
   <img src="https://img.shields.io/badge/Theme-Catppuccin_Mocha-fab387?style=for-the-badge" alt="Catppuccin"/>
 </p>
 
-Configuracion completa para desarrollo **.NET** en **Windows 11** con:
+Configuracion **multiplataforma** para desarrollo **.NET** con:
 - **Neovim** (LazyVim) - Editor con LSP, debugging y snippets para C#
 - **Wezterm** - Terminal GPU-accelerated
 - **GlazeWM** - Tiling window manager
@@ -46,47 +47,74 @@ dotfiles/
 
 ## Instalacion Rapida
 
-### Prerequisitos
+### Windows
 
 ```powershell
-# Instalar con winget
+# Prerequisitos con winget
 winget install Neovim.Neovim
 winget install wez.wezterm
 winget install glzr-io.glazewm
 winget install Microsoft.PowerShell
 winget install Git.Git
 
-# YASB - descargar de https://github.com/amnweb/yasb/releases
-```
-
-### Clonar e Instalar
-
-```powershell
-# Clonar repositorio
+# Clonar e instalar
 git clone https://github.com/TU_USUARIO/dotfiles.git $HOME\dotfiles
 cd $HOME\dotfiles
-
-# Ejecutar script de instalacion
 .\install.ps1
 
-# O instalar manualmente:
-Copy-Item "wezterm.lua" "$HOME\.wezterm.lua"
-Copy-Item -Recurse "nvim" "$env:LOCALAPPDATA\nvim"
-Copy-Item -Recurse "glazewm" "$HOME\.glzr\glazewm"
-Copy-Item -Recurse "yasb\*" "$HOME\.config\yasb\"
-```
-
-### Herramientas .NET
-
-```powershell
 # netcoredbg (debugger)
 mkdir C:\tools\netcoredbg -Force
 # Descargar de: https://github.com/Samsung/netcoredbg/releases
 # Extraer en C:\tools\netcoredbg\
-
-# Roslyn LSP (IntelliSense)
-# Se instala automaticamente con el plugin roslyn.nvim
 ```
+
+### Linux
+
+```bash
+# Prerequisitos (Ubuntu/Debian)
+sudo apt install neovim git nodejs npm
+
+# Prerequisitos (Arch)
+sudo pacman -S neovim git nodejs npm
+
+# Wezterm
+curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg
+echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list
+sudo apt update && sudo apt install wezterm
+
+# Clonar e instalar
+git clone https://github.com/TU_USUARIO/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+chmod +x install.sh
+./install.sh
+
+# netcoredbg (debugger)
+wget https://github.com/Samsung/netcoredbg/releases/latest/download/netcoredbg-linux-amd64.tar.gz
+sudo mkdir -p /usr/local/bin/netcoredbg
+sudo tar -xzf netcoredbg-linux-amd64.tar.gz -C /usr/local/bin
+# O con AUR: yay -S netcoredbg
+```
+
+### macOS
+
+```bash
+# Prerequisitos con Homebrew
+brew install neovim git node
+brew install --cask wezterm
+
+# Clonar e instalar
+git clone https://github.com/TU_USUARIO/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+chmod +x install.sh
+./install.sh
+
+# netcoredbg
+brew install netcoredbg
+```
+
+### Roslyn LSP (IntelliSense C#)
+
+Se instala automaticamente con el plugin `roslyn.nvim` en todas las plataformas.
 
 ## Keymaps Principales
 

@@ -1,5 +1,5 @@
 -- Debug Adapter Protocol para .NET con netcoredbg
--- FIX: Paths convertidos a formato Windows para compatibilidad con netcoredbg
+-- Configuración MULTIPLATAFORMA (Windows/Linux/macOS)
 return {
   -- Which-key group
   {
@@ -44,31 +44,78 @@ return {
     config = function()
       local dap = require("dap")
 
-      -- FIX CRÍTICO para Windows: Convertir paths de forward slashes a backslashes
-      -- Neovim usa "/" pero netcoredbg necesita "\" para mapear breakpoints correctamente
-      local Session = require("dap.session")
-      local original_session_request = Session.request
+      -- Detectar sistema operativo
+      local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
+      local path_sep = is_windows and "\\" or "/"
 
-      Session.request = function(self, command, arguments, callback)
-        if command == "setBreakpoints" and arguments and arguments.source and arguments.source.path then
-          arguments.source.path = arguments.source.path:gsub("/", "\\")
+      -- Función para normalizar paths según el OS
+      local function normalize_path(path)
+        if is_windows then
+          return path:gsub("/", "\\")
+        else
+          return path:gsub("\\", "/")
         end
-        return original_session_request(self, command, arguments, callback)
+      end
+
+      -- FIX para Windows: Convertir paths para netcoredbg
+      if is_windows then
+        local Session = require("dap.session")
+        local original_session_request = Session.request
+
+        Session.request = function(self, command, arguments, callback)
+          if command == "setBreakpoints" and arguments and arguments.source and arguments.source.path then
+            arguments.source.path = normalize_path(arguments.source.path)
+          end
+          return original_session_request(self, command, arguments, callback)
+        end
+      end
+
+      -- Encontrar netcoredbg según el OS
+      local function find_netcoredbg()
+        local paths = is_windows and {
+          "C:\\tools\\netcoredbg\\netcoredbg.exe",
+          vim.fn.expand("$USERPROFILE") .. "\\tools\\netcoredbg\\netcoredbg.exe",
+          vim.fn.expand("$LOCALAPPDATA") .. "\\netcoredbg\\netcoredbg.exe",
+        } or {
+          "/usr/local/bin/netcoredbg",
+          "/usr/bin/netcoredbg",
+          vim.fn.expand("$HOME") .. "/.local/bin/netcoredbg",
+          vim.fn.expand("$HOME") .. "/tools/netcoredbg/netcoredbg",
+          "/opt/netcoredbg/netcoredbg",
+        }
+
+        for _, path in ipairs(paths) do
+          if vim.fn.executable(path) == 1 then
+            return path
+          end
+        end
+
+        -- Intentar encontrarlo en PATH
+        if vim.fn.executable("netcoredbg") == 1 then
+          return "netcoredbg"
+        end
+
+        return nil
+      end
+
+      local netcoredbg_path = find_netcoredbg()
+      if not netcoredbg_path then
+        vim.notify("netcoredbg not found! Install it for .NET debugging.", vim.log.levels.WARN)
       end
 
       -- Adapter de netcoredbg
       dap.adapters.coreclr = {
         type = "executable",
-        command = "C:\\tools\\netcoredbg\\netcoredbg.exe",
+        command = netcoredbg_path or "netcoredbg",
         args = { "--interpreter=vscode" },
         options = {
-          detached = false,
+          detached = not is_windows,
         },
       }
 
-      -- Configuraciones para proyectos .NET
+      -- Función para obtener cwd normalizado
       local function get_cwd()
-        return vim.fn.getcwd():gsub("/", "\\")
+        return normalize_path(vim.fn.getcwd())
       end
 
       -- Función para buscar DLLs de proyectos automáticamente
@@ -76,20 +123,23 @@ return {
         local cwd = get_cwd()
         local configs = {}
 
-        -- Buscar en Apps/*/bin/Debug/net*/*.dll
-        local apps_pattern = cwd .. "\\Apps\\*\\bin\\Debug\\net*"
+        -- Patrones de búsqueda
+        local apps_pattern = cwd .. path_sep .. "Apps" .. path_sep .. "*" .. path_sep .. "bin" .. path_sep .. "Debug" .. path_sep .. "net*"
         local apps_dirs = vim.fn.glob(apps_pattern, false, true)
 
         for _, dir in ipairs(apps_dirs) do
-          dir = dir:gsub("/", "\\")
-          local dlls = vim.fn.glob(dir .. "\\*.dll", false, true)
+          dir = normalize_path(dir)
+          local dlls = vim.fn.glob(dir .. path_sep .. "*.dll", false, true)
           for _, dll in ipairs(dlls) do
-            dll = dll:gsub("/", "\\")
+            dll = normalize_path(dll)
             local dll_name = vim.fn.fnamemodify(dll, ":t:r")
-            local project_dir = dir:match("(.+\\Apps\\[^\\]+)")
+            
+            -- Extraer directorio del proyecto
+            local pattern = is_windows and "(.+\\Apps\\[^\\]+)" or "(.+/Apps/[^/]+)"
+            local project_dir = dir:match(pattern)
             
             if project_dir then
-              local csproj = project_dir .. "\\" .. dll_name .. ".csproj"
+              local csproj = project_dir .. path_sep .. dll_name .. ".csproj"
               if vim.fn.filereadable(csproj) == 1 then
                 table.insert(configs, {
                   type = "coreclr",
@@ -110,16 +160,16 @@ return {
 
         -- Si no encontró nada en Apps/, buscar en el directorio actual
         if #configs == 0 then
-          local direct_pattern = cwd .. "\\bin\\Debug\\net*"
+          local direct_pattern = cwd .. path_sep .. "bin" .. path_sep .. "Debug" .. path_sep .. "net*"
           local direct_dirs = vim.fn.glob(direct_pattern, false, true)
           
           for _, dir in ipairs(direct_dirs) do
-            dir = dir:gsub("/", "\\")
-            local dlls = vim.fn.glob(dir .. "\\*.dll", false, true)
+            dir = normalize_path(dir)
+            local dlls = vim.fn.glob(dir .. path_sep .. "*.dll", false, true)
             for _, dll in ipairs(dlls) do
-              dll = dll:gsub("/", "\\")
+              dll = normalize_path(dll)
               local dll_name = vim.fn.fnamemodify(dll, ":t:r")
-              local csproj = cwd .. "\\" .. dll_name .. ".csproj"
+              local csproj = cwd .. path_sep .. dll_name .. ".csproj"
               
               if vim.fn.filereadable(csproj) == 1 then
                 table.insert(configs, {
@@ -149,7 +199,7 @@ return {
         request = "launch",
         program = function()
           local cwd = get_cwd()
-          return vim.fn.input("Path to DLL: ", cwd .. "\\", "file"):gsub("/", "\\")
+          return normalize_path(vim.fn.input("Path to DLL: ", cwd .. path_sep, "file"))
         end,
         cwd = function()
           return get_cwd()
@@ -161,10 +211,9 @@ return {
         },
       }
 
-      -- Configuraciones iniciales (se actualizan dinámicamente)
+      -- Configuraciones iniciales
       local cs_configs = find_project_dlls()
       table.insert(cs_configs, manual_config)
-
       dap.configurations.cs = cs_configs
 
       -- Iconos para breakpoints
@@ -192,11 +241,8 @@ return {
           end,
           on_stdout = function(_, data)
             for _, line in ipairs(data) do
-              if line and line ~= "" then
-                -- Mostrar errores de compilación
-                if line:match("error") then
-                  vim.notify(line, vim.log.levels.ERROR)
-                end
+              if line and line ~= "" and line:match("error") then
+                vim.notify(line, vim.log.levels.ERROR)
               end
             end
           end,
@@ -210,9 +256,8 @@ return {
         })
       end
 
-      -- Función para iniciar debug de .NET (busca proyectos dinámicamente)
+      -- Función para iniciar debug de .NET
       local function start_dotnet_debug()
-        -- Refrescar la lista de proyectos cada vez
         local configs = find_project_dlls()
         table.insert(configs, manual_config)
         
@@ -228,11 +273,9 @@ return {
           end,
         }, function(selected)
           if selected then
-            -- Compilar antes de iniciar debug
             local project_cwd = type(selected.cwd) == "function" and selected.cwd() or selected.cwd
             build_project(project_cwd, function(success)
               if success then
-                -- Refrescar la config para obtener el DLL más reciente
                 local fresh_configs = find_project_dlls()
                 for _, cfg in ipairs(fresh_configs) do
                   if cfg.name == selected.name then
@@ -240,7 +283,6 @@ return {
                     return
                   end
                 end
-                -- Si no encuentra, usar la config original
                 dap.run(selected)
               end
             end)
