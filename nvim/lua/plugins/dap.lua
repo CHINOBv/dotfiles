@@ -27,7 +27,7 @@ return {
           dapui.setup({
             controls = {
               enabled = true,
-              element = "repl",
+              element = "console",  -- Usar console en lugar de repl
               icons = {
                 disconnect = "",
                 pause = "",
@@ -81,6 +81,49 @@ return {
           dap.listeners.before.event_exited["dapui_config"] = function()
             dapui.close({})
           end
+        end,
+      },
+      -- Hydra para controles de debug visibles
+      {
+        "nvimtools/hydra.nvim",
+        config = function()
+          local Hydra = require("hydra")
+          local dap = require("dap")
+
+          local hint = [[
+ _c_: Continue   _i_: Step Into   _o_: Step Over   _O_: Step Out
+ _b_: Breakpoint _B_: Cond. BP    _r_: REPL        _u_: UI Toggle
+ _t_: Terminate  _l_: Run Last    _e_: Eval        _q_: Exit
+]]
+
+          Hydra({
+            name = "Debug",
+            hint = hint,
+            config = {
+              color = "pink",
+              invoke_on_body = true,
+              hint = {
+                border = "rounded",
+                position = "bottom",
+              },
+            },
+            mode = "n",
+            body = "<leader>dh",
+            heads = {
+              { "c", function() dap.continue() end, { desc = "Continue" } },
+              { "i", function() dap.step_into() end, { desc = "Step Into" } },
+              { "o", function() dap.step_over() end, { desc = "Step Over" } },
+              { "O", function() dap.step_out() end, { desc = "Step Out" } },
+              { "b", function() dap.toggle_breakpoint() end, { desc = "Breakpoint" } },
+              { "B", function() dap.set_breakpoint(vim.fn.input("Condition: ")) end, { desc = "Cond. BP" } },
+              { "r", function() dap.repl.toggle() end, { desc = "REPL" } },
+              { "u", function() require("dapui").toggle() end, { desc = "UI" } },
+              { "t", function() dap.terminate() end, { desc = "Terminate" } },
+              { "l", function() dap.run_last() end, { desc = "Run Last" } },
+              { "e", function() require("dapui").eval() end, { desc = "Eval" } },
+              { "q", nil, { exit = true, nowait = true, desc = "Exit" } },
+            },
+          })
         end,
       },
       {
