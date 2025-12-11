@@ -1,28 +1,33 @@
--- Codeium: AI autocompletado gratuito
+-- Codeium: AI autocompletado gratuito (compatible con blink.cmp)
 return {
   {
     "Exafunction/codeium.nvim",
     dependencies = {
       "nvim-lua/plenary.nvim",
-      "hrsh7th/nvim-cmp",
     },
     event = "InsertEnter",
-    config = function()
-      require("codeium").setup({
-        enable_chat = true,
-      })
-    end,
+    opts = {
+      enable_chat = true,
+    },
   },
 
-  -- Agregar codeium como fuente de nvim-cmp
+  -- Agregar codeium como fuente de blink.cmp
   {
-    "hrsh7th/nvim-cmp",
-    opts = function(_, opts)
-      table.insert(opts.sources, 1, {
-        name = "codeium",
-        group_index = 1,
-        priority = 100,
-      })
-    end,
+    "saghen/blink.cmp",
+    optional = true,
+    dependencies = { "Exafunction/codeium.nvim" },
+    opts = {
+      sources = {
+        default = { "codeium", "lsp", "path", "snippets", "buffer" },
+        providers = {
+          codeium = {
+            name = "codeium",
+            module = "codeium.blink",
+            async = true,
+            score_offset = 100,
+          },
+        },
+      },
+    },
   },
 }
