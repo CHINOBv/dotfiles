@@ -72,9 +72,12 @@ return {
     "ggandor/leap.nvim",
     event = "VeryLazy",
     dependencies = { "tpope/vim-repeat" },
+    keys = {
+      { "s", "<Plug>(leap-forward)", mode = { "n", "x", "o" }, desc = "Leap Forward" },
+      { "S", "<Plug>(leap-backward)", mode = { "n", "x", "o" }, desc = "Leap Backward" },
+      { "gs", "<Plug>(leap-from-window)", mode = { "n", "x", "o" }, desc = "Leap from Window" },
+    },
     config = function()
-      local leap = require("leap")
-      leap.add_default_mappings(true)
       -- Colores Catppuccin
       vim.api.nvim_set_hl(0, "LeapBackdrop", { link = "Comment" })
       vim.api.nvim_set_hl(0, "LeapMatch", { fg = "#1e1e2e", bg = "#fab387", bold = true })
@@ -237,7 +240,7 @@ return {
   -- MINI.BRACKETED - Navegar con [ y ] mejorado
   -- ============================================================
   {
-    "echasnovski/mini.bracketed",
+    "mini.bracketed",
     event = "VeryLazy",
     opts = {
       buffer     = { suffix = "b", options = {} },
