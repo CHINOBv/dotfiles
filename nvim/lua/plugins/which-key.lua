@@ -16,9 +16,9 @@ return {
         { "<leader>q", group = "Quit/Session", icon = "" },
         { "<leader>s", group = "Search", icon = "" },
         { "<leader>t", group = "Terminal", icon = "" },
-        { "<leader>u", group = "UI", icon = "" },
+        { "<leader>u", group = "UI/Toggle", icon = "" },
         { "<leader>w", group = "Windows", icon = "" },
-        { "<leader>x", group = "Diagnostics", icon = "" },
+        { "<leader>x", group = "Diagnostics/TODOs", icon = "" },
       },
     },
     keys = {
@@ -28,6 +28,8 @@ return {
       { "<leader>cr", vim.lsp.buf.rename, desc = "Rename Symbol" },
       { "<leader>cf", function() vim.lsp.buf.format({ async = true }) end, desc = "Format Document" },
       { "<leader>cF", function() vim.lsp.buf.format({ async = true, range = true }) end, desc = "Format Selection", mode = "v" },
+      -- UI toggles
+      { "<leader>un", function() require("notify").dismiss({ silent = true, pending = true }) end, desc = "Dismiss Notifications" },
     },
   },
 }
