@@ -61,3 +61,7 @@ map("t", "<C-h>", "<C-\\><C-n><C-w>h", { desc = "Go to Left Window" })
 map("t", "<C-j>", "<C-\\><C-n><C-w>j", { desc = "Go to Lower Window" })
 map("t", "<C-k>", "<C-\\><C-n><C-w>k", { desc = "Go to Upper Window" })
 map("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Go to Right Window" })
+
+-- H y L para inicio/final de línea (más fácil que ^ y $)
+map({ "n", "v", "o" }, "H", "^", { desc = "Start of Line" })
+map({ "n", "v", "o" }, "L", "$", { desc = "End of Line" })
