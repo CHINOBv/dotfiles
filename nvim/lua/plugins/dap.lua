@@ -294,6 +294,44 @@ return {
       vim.api.nvim_create_user_command("DapDotnet", start_dotnet_debug, {
         desc = "Start .NET debugging",
       })
+
+      -- Función inteligente para detectar tipo de proyecto y debuggear
+      local function smart_debug()
+        local cwd = vim.fn.getcwd()
+        
+        -- Detectar Flutter (pubspec.yaml)
+        if vim.fn.filereadable(cwd .. "/pubspec.yaml") == 1 then
+          vim.cmd("FlutterRun")
+          return
+        end
+        
+        -- Detectar Go (go.mod)
+        if vim.fn.filereadable(cwd .. "/go.mod") == 1 then
+          require("dap").continue()
+          return
+        end
+        
+        -- Detectar Node/TS (package.json)
+        if vim.fn.filereadable(cwd .. "/package.json") == 1 then
+          require("dap").continue()
+          return
+        end
+        
+        -- Detectar .NET (*.csproj o *.sln)
+        local csproj = vim.fn.glob(cwd .. "/*.csproj", false, true)
+        local sln = vim.fn.glob(cwd .. "/*.sln", false, true)
+        if #csproj > 0 or #sln > 0 then
+          start_dotnet_debug()
+          return
+        end
+        
+        -- Fallback: usar DAP continue genérico
+        require("dap").continue()
+      end
+
+      vim.api.nvim_create_user_command("DapSmart", smart_debug, {
+        desc = "Smart debug based on project type",
+      })
     end,
     keys = {
       { "<leader>db", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
@@ -311,7 +349,7 @@ return {
       { "<leader>de", function() require("dapui").eval() end, desc = "Eval", mode = { "n", "v" } },
       { "<leader>dj", function() require("dap").down() end, desc = "Down (Stack)" },
       { "<leader>dk", function() require("dap").up() end, desc = "Up (Stack)" },
-      { "<F5>", "<cmd>DapDotnet<cr>", desc = "Start .NET Debug" },
+      { "<F5>", "<cmd>DapSmart<cr>", desc = "Smart Debug (auto-detect)" },
       { "<F9>", function() require("dap").toggle_breakpoint() end, desc = "Toggle Breakpoint" },
       { "<F10>", function() require("dap").step_over() end, desc = "Step Over" },
       { "<F11>", function() require("dap").step_into() end, desc = "Step Into" },
