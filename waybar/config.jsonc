@@ -1,0 +1,143 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 35,
+  "spacing": 4,
+  "margin-top": 5,
+  "margin-left": 10,
+  "margin-right": 10,
+
+  "modules-left": [
+    "hyprland/workspaces",
+    "hyprland/window"
+  ],
+  "modules-center": [
+    "clock"
+  ],
+  "modules-right": [
+    "tray",
+    "cpu",
+    "memory",
+    "disk",
+    "pulseaudio",
+    "network",
+    "battery",
+    "custom/power"
+  ],
+
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "format-icons": {
+      "1": "",
+      "2": "",
+      "3": "󰨞",
+      "4": "",
+      "5": "",
+      "6": "",
+      "7": "",
+      "8": "",
+      "9": "",
+      "10": "",
+      "urgent": "",
+      "active": "",
+      "default": ""
+    },
+    "on-click": "activate",
+    "sort-by-number": true,
+    "persistent-workspaces": {
+      "*": 5
+    }
+  },
+
+  "hyprland/window": {
+    "format": "{}",
+    "max-length": 50,
+    "separate-outputs": true,
+    "rewrite": {
+      "(.*) — Mozilla Firefox": "󰈹 $1",
+      "(.*) - Visual Studio Code": "󰨞 $1",
+      "nvim (.*)": " $1",
+      "(.*) - wezterm": " $1"
+    }
+  },
+
+  "clock": {
+    "format": "󰃰 {:%a %d %b  󰥔 %H:%M}",
+    "format-alt": "󰃰 {:%Y-%m-%d  󰥔 %H:%M:%S}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "interval": 1
+  },
+
+  "cpu": {
+    "format": " {usage}%",
+    "tooltip": true,
+    "interval": 2,
+    "on-click": "wezterm start --class btop -- btop"
+  },
+
+  "memory": {
+    "format": " {}%",
+    "tooltip-format": "{used:0.1f}GB / {total:0.1f}GB",
+    "interval": 2,
+    "on-click": "wezterm start --class btop -- btop"
+  },
+
+  "disk": {
+    "format": "󰋊 {percentage_used}%",
+    "tooltip-format": "{used} / {total} ({path})",
+    "interval": 30,
+    "path": "/"
+  },
+
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-bluetooth": "󰂯 {volume}%",
+    "format-bluetooth-muted": "󰂲",
+    "format-muted": "󰝟",
+    "format-icons": {
+      "headphone": "󰋋",
+      "hands-free": "󰋎",
+      "headset": "󰋎",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": ["󰕿", "󰖀", "󰕾"]
+    },
+    "on-click": "pavucontrol",
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+  },
+
+  "network": {
+    "format-wifi": "󰤨 {signalStrength}%",
+    "format-ethernet": "󰈀 {ipaddr}",
+    "format-linked": "󰈀 {ifname}",
+    "format-disconnected": "󰤭",
+    "format-alt": "{ifname}: {ipaddr}/{cidr}",
+    "tooltip-format": "{essid} ({signalStrength}%)\n{ifname}: {ipaddr}",
+    "on-click-right": "nm-connection-editor"
+  },
+
+  "battery": {
+    "states": {
+      "good": 95,
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "󰂄 {capacity}%",
+    "format-plugged": "󰂄 {capacity}%",
+    "format-alt": "{icon} {time}",
+    "format-icons": ["󰂃", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+  },
+
+  "tray": {
+    "icon-size": 16,
+    "spacing": 8
+  },
+
+  "custom/power": {
+    "format": "⏻",
+    "tooltip": false,
+    "on-click": "wlogout"
+  }
+}

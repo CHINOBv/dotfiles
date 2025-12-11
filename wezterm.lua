@@ -49,8 +49,24 @@ config.webgpu_power_preference = "HighPerformance"
 config.max_fps = 120
 config.animation_fps = 60
 
--- Shell por defecto
-config.default_prog = { "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoLogo" }
+-- Shell por defecto (detectar OS)
+local is_windows = wezterm.target_triple:find("windows") ~= nil
+local is_linux = wezterm.target_triple:find("linux") ~= nil
+
+if is_windows then
+  config.default_prog = { "C:\\Program Files\\PowerShell\\7\\pwsh.exe", "-NoLogo" }
+elseif is_linux then
+  config.default_prog = { "/usr/bin/fish" }
+  -- Fallback a bash si fish no está instalado
+  if not io.open("/usr/bin/fish", "r") then
+    config.default_prog = { "/bin/bash" }
+  end
+end
+
+-- Wayland en Linux
+if is_linux then
+  config.enable_wayland = true
+end
 
 -- ===================================================================
 -- FUENTE Y TIPOGRAFÍA

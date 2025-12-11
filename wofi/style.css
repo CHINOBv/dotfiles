@@ -1,0 +1,79 @@
+/* Wofi Style - Catppuccin Mocha */
+
+@define-color mauve     #cba6f7;
+@define-color text      #cdd6f4;
+@define-color subtext0  #a6adc8;
+@define-color overlay0  #6c7086;
+@define-color surface0  #313244;
+@define-color base      #1e1e2e;
+@define-color mantle    #181825;
+@define-color crust     #11111b;
+
+* {
+    font-family: "JetBrainsMono Nerd Font";
+    font-size: 14px;
+}
+
+window {
+    margin: 0px;
+    border: 2px solid @mauve;
+    border-radius: 15px;
+    background-color: @base;
+}
+
+#input {
+    margin: 10px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    color: @text;
+    background-color: @surface0;
+}
+
+#input:focus {
+    border: 2px solid @mauve;
+}
+
+#inner-box {
+    margin: 5px 10px 10px 10px;
+    border: none;
+    background-color: transparent;
+}
+
+#outer-box {
+    margin: 0px;
+    border: none;
+    background-color: transparent;
+}
+
+#scroll {
+    margin: 0px;
+    border: none;
+}
+
+#text {
+    margin: 5px;
+    border: none;
+    color: @text;
+}
+
+#entry {
+    padding: 10px;
+    margin: 3px 0px;
+    border-radius: 10px;
+    background-color: transparent;
+}
+
+#entry:selected {
+    background-color: @surface0;
+    outline: none;
+}
+
+#entry:selected #text {
+    color: @mauve;
+    font-weight: bold;
+}
+
+#img {
+    margin-right: 10px;
+}
