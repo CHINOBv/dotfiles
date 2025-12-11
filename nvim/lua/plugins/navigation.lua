@@ -66,28 +66,9 @@ return {
   },
 
   -- ============================================================
-  -- LEAP - Saltos rápidos a cualquier parte visible
-  -- ============================================================
-  {
-    "ggandor/leap.nvim",
-    event = "VeryLazy",
-    dependencies = { "tpope/vim-repeat" },
-    keys = {
-      { "s", "<Plug>(leap-forward)", mode = { "n", "x", "o" }, desc = "Leap Forward" },
-      { "S", "<Plug>(leap-backward)", mode = { "n", "x", "o" }, desc = "Leap Backward" },
-      { "gs", "<Plug>(leap-from-window)", mode = { "n", "x", "o" }, desc = "Leap from Window" },
-    },
-    config = function()
-      -- Colores Catppuccin
-      vim.api.nvim_set_hl(0, "LeapBackdrop", { link = "Comment" })
-      vim.api.nvim_set_hl(0, "LeapMatch", { fg = "#1e1e2e", bg = "#fab387", bold = true })
-      vim.api.nvim_set_hl(0, "LeapLabelPrimary", { fg = "#1e1e2e", bg = "#f38ba8", bold = true })
-      vim.api.nvim_set_hl(0, "LeapLabelSecondary", { fg = "#1e1e2e", bg = "#a6e3a1", bold = true })
-    end,
-  },
-
-  -- ============================================================
-  -- FLASH - Alternativa/complemento a Leap para búsqueda mejorada
+  -- FLASH - Saltos rápidos a cualquier parte (reemplaza Leap)
+  -- s: saltar a cualquier lugar (arriba/abajo)
+  -- S: seleccionar nodo treesitter
   -- ============================================================
   {
     "folke/flash.nvim",
@@ -119,8 +100,8 @@ return {
         },
       },
       modes = {
-        search = { enabled = false }, -- No interferir con / búsqueda normal
-        char = { enabled = true }, -- Mejorar f, F, t, T
+        search = { enabled = false },
+        char = { enabled = true }, -- Mejora f, F, t, T
         treesitter = {
           labels = "abcdefghijklmnopqrstuvwxyz",
           jump = { pos = "range" },
@@ -129,10 +110,11 @@ return {
       },
     },
     keys = {
-      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash Jump" },
-      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash Jump (any direction)" },
+      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter Select" },
       { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
       { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+      { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
     },
   },
 
