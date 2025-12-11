@@ -22,6 +22,13 @@ return {
         return vim.fn.expand("%:t:r")
       end
 
+      -- Función helper para repetir nodos
+      local function rep(idx)
+        return f(function(args)
+          return args[1]
+        end, { idx })
+      end
+
       -- ============================================
       -- SNIPPETS DE C#
       -- ============================================
@@ -405,13 +412,6 @@ public void Dispose()
 }}
 ]], { i(0, "// Dispose managed resources") })),
       })
-
-      -- Función helper para repetir nodos
-      function rep(idx)
-        return f(function(args)
-          return args[1]
-        end, { idx })
-      end
 
       -- Configuración de LuaSnip
       ls.config.set_config({
