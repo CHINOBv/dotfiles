@@ -85,9 +85,23 @@ echo -e "${CYAN}[*] Detected: $DISTRO${NC}\n"
 echo -e "${CYAN}[*] Installing Neovim config...${NC}"
 install_config "$SCRIPT_DIR/nvim" "$CONFIG_DIR/nvim" "Neovim"
 
-# ===== WEZTERM =====
-echo -e "\n${CYAN}[*] Installing Wezterm config...${NC}"
+# ===== TERMINALS =====
+echo -e "\n${CYAN}[*] Installing terminal configs...${NC}"
+
+# Wezterm
 install_config "$SCRIPT_DIR/wezterm.lua" "$HOME/.wezterm.lua" "Wezterm"
+
+# Kitty
+if [[ -d "$SCRIPT_DIR/kitty" ]]; then
+    mkdir -p "$CONFIG_DIR/kitty"
+    install_config "$SCRIPT_DIR/kitty/kitty.conf" "$CONFIG_DIR/kitty/kitty.conf" "Kitty"
+fi
+
+# Ghostty
+if [[ -d "$SCRIPT_DIR/ghostty" ]]; then
+    mkdir -p "$CONFIG_DIR/ghostty"
+    install_config "$SCRIPT_DIR/ghostty/config" "$CONFIG_DIR/ghostty/config" "Ghostty"
+fi
 
 # ===== HYPRLAND (Linux only) =====
 if [[ "$OSTYPE" == "linux-gnu"* ]] && [[ "$SKIP_HYPRLAND" == "false" ]]; then
