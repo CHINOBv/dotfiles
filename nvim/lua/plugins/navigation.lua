@@ -135,71 +135,65 @@ return {
 
   -- ============================================================
   -- TREESITTER TEXTOBJECTS - Navegar por funciones, clases, etc.
+  -- LazyVim ya incluye este plugin, solo extendemos la config
   -- ============================================================
   {
-    "nvim-treesitter/nvim-treesitter-textobjects",
-    event = "VeryLazy",
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
-    config = function()
-      require("nvim-treesitter.configs").setup({
-        textobjects = {
-          -- Saltar entre funciones/clases
-          move = {
-            enable = true,
-            set_jumps = true,
-            goto_next_start = {
-              ["]m"] = { query = "@function.outer", desc = "Next Method/Function" },
-              ["]c"] = { query = "@class.outer", desc = "Next Class" },
-              ["]a"] = { query = "@parameter.inner", desc = "Next Argument" },
-              ["]l"] = { query = "@loop.outer", desc = "Next Loop" },
-              ["]i"] = { query = "@conditional.outer", desc = "Next If/Conditional" },
-            },
-            goto_next_end = {
-              ["]M"] = { query = "@function.outer", desc = "Next Method End" },
-              ["]C"] = { query = "@class.outer", desc = "Next Class End" },
-            },
-            goto_previous_start = {
-              ["[m"] = { query = "@function.outer", desc = "Previous Method/Function" },
-              ["[c"] = { query = "@class.outer", desc = "Previous Class" },
-              ["[a"] = { query = "@parameter.inner", desc = "Previous Argument" },
-              ["[l"] = { query = "@loop.outer", desc = "Previous Loop" },
-              ["[i"] = { query = "@conditional.outer", desc = "Previous If/Conditional" },
-            },
-            goto_previous_end = {
-              ["[M"] = { query = "@function.outer", desc = "Previous Method End" },
-              ["[C"] = { query = "@class.outer", desc = "Previous Class End" },
-            },
+    "nvim-treesitter/nvim-treesitter",
+    opts = {
+      textobjects = {
+        move = {
+          enable = true,
+          set_jumps = true,
+          goto_next_start = {
+            ["]m"] = { query = "@function.outer", desc = "Next Method/Function" },
+            ["]c"] = { query = "@class.outer", desc = "Next Class" },
+            ["]a"] = { query = "@parameter.inner", desc = "Next Argument" },
+            ["]l"] = { query = "@loop.outer", desc = "Next Loop" },
+            ["]i"] = { query = "@conditional.outer", desc = "Next If/Conditional" },
           },
-          -- Seleccionar funciones/clases/etc.
-          select = {
-            enable = true,
-            lookahead = true,
-            keymaps = {
-              ["af"] = { query = "@function.outer", desc = "Select outer function" },
-              ["if"] = { query = "@function.inner", desc = "Select inner function" },
-              ["ac"] = { query = "@class.outer", desc = "Select outer class" },
-              ["ic"] = { query = "@class.inner", desc = "Select inner class" },
-              ["aa"] = { query = "@parameter.outer", desc = "Select outer argument" },
-              ["ia"] = { query = "@parameter.inner", desc = "Select inner argument" },
-              ["al"] = { query = "@loop.outer", desc = "Select outer loop" },
-              ["il"] = { query = "@loop.inner", desc = "Select inner loop" },
-              ["ai"] = { query = "@conditional.outer", desc = "Select outer conditional" },
-              ["ii"] = { query = "@conditional.inner", desc = "Select inner conditional" },
-            },
+          goto_next_end = {
+            ["]M"] = { query = "@function.outer", desc = "Next Method End" },
+            ["]C"] = { query = "@class.outer", desc = "Next Class End" },
           },
-          -- Intercambiar argumentos/parámetros
-          swap = {
-            enable = true,
-            swap_next = {
-              ["<leader>a"] = { query = "@parameter.inner", desc = "Swap with next argument" },
-            },
-            swap_previous = {
-              ["<leader>A"] = { query = "@parameter.inner", desc = "Swap with previous argument" },
-            },
+          goto_previous_start = {
+            ["[m"] = { query = "@function.outer", desc = "Previous Method/Function" },
+            ["[c"] = { query = "@class.outer", desc = "Previous Class" },
+            ["[a"] = { query = "@parameter.inner", desc = "Previous Argument" },
+            ["[l"] = { query = "@loop.outer", desc = "Previous Loop" },
+            ["[i"] = { query = "@conditional.outer", desc = "Previous If/Conditional" },
+          },
+          goto_previous_end = {
+            ["[M"] = { query = "@function.outer", desc = "Previous Method End" },
+            ["[C"] = { query = "@class.outer", desc = "Previous Class End" },
           },
         },
-      })
-    end,
+        select = {
+          enable = true,
+          lookahead = true,
+          keymaps = {
+            ["af"] = { query = "@function.outer", desc = "Select outer function" },
+            ["if"] = { query = "@function.inner", desc = "Select inner function" },
+            ["ac"] = { query = "@class.outer", desc = "Select outer class" },
+            ["ic"] = { query = "@class.inner", desc = "Select inner class" },
+            ["aa"] = { query = "@parameter.outer", desc = "Select outer argument" },
+            ["ia"] = { query = "@parameter.inner", desc = "Select inner argument" },
+            ["al"] = { query = "@loop.outer", desc = "Select outer loop" },
+            ["il"] = { query = "@loop.inner", desc = "Select inner loop" },
+            ["ai"] = { query = "@conditional.outer", desc = "Select outer conditional" },
+            ["ii"] = { query = "@conditional.inner", desc = "Select inner conditional" },
+          },
+        },
+        swap = {
+          enable = true,
+          swap_next = {
+            ["<leader>a"] = { query = "@parameter.inner", desc = "Swap with next argument" },
+          },
+          swap_previous = {
+            ["<leader>A"] = { query = "@parameter.inner", desc = "Swap with previous argument" },
+          },
+        },
+      },
+    },
   },
 
   -- ============================================================
