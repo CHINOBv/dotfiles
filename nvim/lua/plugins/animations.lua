@@ -8,7 +8,7 @@ return {
 
   -- Mini.animate - SOLO animaciones de ventanas (NO scroll ni cursor)
   {
-    "mini.animate",
+    "nvim-mini/mini.animate",
     event = "VeryLazy",
     opts = function()
       local animate = require("mini.animate")
@@ -37,7 +37,7 @@ return {
 
   -- Animacion de indentacion (no afecta navegación)
   {
-    "mini.indentscope",
+    "nvim-mini/mini.indentscope",
     version = false,
     event = "LazyFile",
     opts = {

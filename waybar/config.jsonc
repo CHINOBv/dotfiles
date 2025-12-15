@@ -1,13 +1,15 @@
 {
   "layer": "top",
   "position": "top",
-  "height": 35,
-  "spacing": 4,
-  "margin-top": 5,
-  "margin-left": 10,
-  "margin-right": 10,
+  "height": 40,
+  "spacing": 0,
+  "margin-top": 8,
+  "margin-left": 15,
+  "margin-right": 15,
+  "reload_style_on_change": true,
 
   "modules-left": [
+    "custom/logo",
     "hyprland/workspaces",
     "hyprland/window"
   ],
@@ -15,78 +17,89 @@
     "clock"
   ],
   "modules-right": [
+    "mpris",
     "tray",
+    "backlight",
+    "pulseaudio",
+    "bluetooth",
+    "network",
     "cpu",
     "memory",
-    "disk",
-    "pulseaudio",
-    "network",
     "battery",
     "custom/power"
   ],
 
+  "custom/logo": {
+    "format": " ",
+    "tooltip": false,
+    "on-click": "wofi --show drun"
+  },
+
   "hyprland/workspaces": {
-    "format": "{icon}",
-    "format-icons": {
-      "1": "",
-      "2": "",
-      "3": "󰨞",
-      "4": "",
-      "5": "",
-      "6": "",
-      "7": "",
-      "8": "",
-      "9": "",
-      "10": "",
-      "urgent": "",
-      "active": "",
-      "default": ""
-    },
+    "format": "{name}",
     "on-click": "activate",
     "sort-by-number": true,
-    "persistent-workspaces": {
-      "*": 5
-    }
+    "all-outputs": true,
+    "active-only": false
   },
 
   "hyprland/window": {
-    "format": "{}",
-    "max-length": 50,
+    "format": "{title}",
+    "max-length": 40,
     "separate-outputs": true,
     "rewrite": {
-      "(.*) — Mozilla Firefox": "󰈹 $1",
+      "(.*) — Mozilla Firefox": " $1",
+      "(.*) - Chromium": " $1",
+      "(.*) - Google Chrome": " $1",
       "(.*) - Visual Studio Code": "󰨞 $1",
       "nvim (.*)": " $1",
-      "(.*) - wezterm": " $1"
+      "(.*) - Ghostty": " $1",
+      "Spotify": " Spotify",
+      "": "󰄛 Desktop"
     }
   },
 
   "clock": {
-    "format": "󰃰 {:%a %d %b  󰥔 %H:%M}",
-    "format-alt": "󰃰 {:%Y-%m-%d  󰥔 %H:%M:%S}",
-    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "format": " {:%H:%M  %a %d %b}",
+    "format-alt": " {:%H:%M:%S  %Y-%m-%d}",
+    "tooltip-format": "<big>{:%B %Y}</big>\n<tt><small>{calendar}</small></tt>",
     "interval": 1
   },
 
-  "cpu": {
-    "format": " {usage}%",
+  "mpris": {
+    "format": "{player_icon}  {title} - {artist}",
+    "format-paused": "{player_icon}  {title} - {artist}",
+    "max-length": 35,
+    "player-icons": {
+      "default": "",
+      "spotify": "",
+      "firefox": "",
+      "chromium": "",
+      "brave": ""
+    },
+    "status-icons": {
+      "paused": "",
+      "playing": ""
+    },
+    "on-click": "playerctl play-pause",
+    "on-click-right": "playerctl next",
+    "on-click-middle": "playerctl previous",
+    "on-scroll-up": "playerctl volume 0.05+",
+    "on-scroll-down": "playerctl volume 0.05-",
+    "ignored-players": ["firefox"]
+  },
+
+  "tray": {
+    "icon-size": 16,
+    "spacing": 10
+  },
+
+  "backlight": {
+    "format": "{icon} {percent}%",
+    "format-icons": ["󰃞", "󰃟", "󰃠"],
     "tooltip": true,
-    "interval": 2,
-    "on-click": "wezterm start --class btop -- btop"
-  },
-
-  "memory": {
-    "format": " {}%",
-    "tooltip-format": "{used:0.1f}GB / {total:0.1f}GB",
-    "interval": 2,
-    "on-click": "wezterm start --class btop -- btop"
-  },
-
-  "disk": {
-    "format": "󰋊 {percentage_used}%",
-    "tooltip-format": "{used} / {total} ({path})",
-    "interval": 30,
-    "path": "/"
+    "on-scroll-up": "brightnessctl set 5%+",
+    "on-scroll-down": "brightnessctl set 5%-"
   },
 
   "pulseaudio": {
@@ -98,23 +111,52 @@
       "headphone": "󰋋",
       "hands-free": "󰋎",
       "headset": "󰋎",
-      "phone": "",
-      "portable": "",
-      "car": "",
       "default": ["󰕿", "󰖀", "󰕾"]
     },
     "on-click": "pavucontrol",
-    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
+    "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+    "on-scroll-up": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-",
+    "smooth-scrolling-threshold": 1
+  },
+
+  "bluetooth": {
+    "format": "󰂯",
+    "format-connected": "󰂱 {device_alias}",
+    "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
+    "format-disabled": "󰂲",
+    "format-off": "󰂲",
+    "tooltip-format": "{controller_alias}\n{num_connections} connected",
+    "tooltip-format-connected": "{controller_alias}\n{num_connections} connected\n\n{device_enumerate}",
+    "tooltip-format-enumerate-connected": "{device_alias}",
+    "tooltip-format-enumerate-connected-battery": "{device_alias}\t{device_battery_percentage}%",
+    "on-click": "blueman-manager"
   },
 
   "network": {
     "format-wifi": "󰤨 {signalStrength}%",
-    "format-ethernet": "󰈀 {ipaddr}",
-    "format-linked": "󰈀 {ifname}",
+    "format-ethernet": "󰈀",
+    "format-linked": "󰈀",
     "format-disconnected": "󰤭",
-    "format-alt": "{ifname}: {ipaddr}/{cidr}",
-    "tooltip-format": "{essid} ({signalStrength}%)\n{ifname}: {ipaddr}",
-    "on-click-right": "nm-connection-editor"
+    "format-alt": " {bandwidthDownBits}   {bandwidthUpBits}",
+    "tooltip-format": "{essid}\n{ifname}: {ipaddr}/{cidr}\n {bandwidthDownBits}  {bandwidthUpBits}",
+    "tooltip-format-ethernet": "{ifname}: {ipaddr}/{cidr}\n {bandwidthDownBits}  {bandwidthUpBits}",
+    "on-click-right": "nm-connection-editor",
+    "interval": 2
+  },
+
+  "cpu": {
+    "format": " {usage}%",
+    "tooltip": true,
+    "interval": 2,
+    "on-click": "ghostty -e btop"
+  },
+
+  "memory": {
+    "format": "󰍛 {percentage}%",
+    "tooltip-format": "RAM: {used:0.1f}GB / {total:0.1f}GB\nSwap: {swapUsed:0.1f}GB / {swapTotal:0.1f}GB",
+    "interval": 2,
+    "on-click": "ghostty -e btop"
   },
 
   "battery": {
@@ -125,19 +167,18 @@
     },
     "format": "{icon} {capacity}%",
     "format-charging": "󰂄 {capacity}%",
-    "format-plugged": "󰂄 {capacity}%",
+    "format-plugged": "󱘖 {capacity}%",
     "format-alt": "{icon} {time}",
-    "format-icons": ["󰂃", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
-  },
-
-  "tray": {
-    "icon-size": 16,
-    "spacing": 8
+    "format-full": "󰁹 Full",
+    "format-icons": ["󰂎", "󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"],
+    "tooltip-format": "{timeTo}\n{power}W"
   },
 
   "custom/power": {
     "format": "⏻",
-    "tooltip": false,
-    "on-click": "wlogout"
+    "tooltip": true,
+    "tooltip-format": "Power Menu\nClick: Menu | Right: Lock",
+    "on-click": "wlogout || (echo -e 'Shutdown\nReboot\nSuspend\nLogout\nLock' | wofi --dmenu --prompt 'Power' | xargs -I {} sh -c 'case {} in Shutdown) systemctl poweroff;; Reboot) systemctl reboot;; Suspend) systemctl suspend;; Logout) hyprctl dispatch exit;; Lock) hyprlock;; esac')",
+    "on-click-right": "hyprlock"
   }
 }

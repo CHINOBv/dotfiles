@@ -44,9 +44,9 @@ window-padding-x = 15
 window-padding-y = 10
 window-padding-balance = true
 
-background-opacity = 0.92
-background-blur-radius = 20
-unfocused-split-opacity = 0.85
+background-opacity = 0.85
+background-blur-radius = 25
+unfocused-split-opacity = 0.80
 
 window-decoration = auto
 window-theme = ghostty
@@ -69,8 +69,8 @@ scrollback-limit = 10000
 # ===================================================================
 # BELL
 # ===================================================================
-audible-bell = false
-visual-bell = true
+# Bell configuration - disable all bell features
+bell-features = no-audio,no-system
 
 # ===================================================================
 # TABS
@@ -125,8 +125,8 @@ keybind = ctrl+shift+c=copy_to_clipboard
 keybind = ctrl+shift+v=paste_from_clipboard
 
 # Scrolling
-keybind = ctrl+shift+up=scroll_line_up
-keybind = ctrl+shift+down=scroll_line_down
+keybind = ctrl+shift+up=scroll_page_lines:-5
+keybind = ctrl+shift+down=scroll_page_lines:5
 keybind = ctrl+shift+page_up=scroll_page_up
 keybind = ctrl+shift+page_down=scroll_page_down
 keybind = ctrl+shift+home=scroll_to_top
@@ -191,11 +191,13 @@ keybind = ctrl+shift+comma=reload_config
 # Inspector (debug)
 keybind = ctrl+shift+i=inspector:toggle
 
-# Open URLs
-keybind = ctrl+shift+u=open_url
+# Open URLs (click with ctrl held to open URLs)
+# Note: open_url action removed - use ctrl+click on URLs instead
 
 # Quick terminal (quake style)
-keybind = global:ctrl+grave=toggle_quick_terminal
+# Note: global: prefix only works on macOS, not Linux
+# On Linux Wayland (except GNOME), use without global prefix:
+keybind = ctrl+backquote=toggle_quick_terminal
 
 # ===================================================================
 # SHELL INTEGRATION

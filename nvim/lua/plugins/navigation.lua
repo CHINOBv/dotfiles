@@ -222,7 +222,7 @@ return {
   -- MINI.BRACKETED - Navegar con [ y ] mejorado
   -- ============================================================
   {
-    "mini.bracketed",
+    "nvim-mini/mini.bracketed",
     event = "VeryLazy",
     opts = {
       buffer     = { suffix = "b", options = {} },

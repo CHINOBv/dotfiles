@@ -1,0 +1,37 @@
+{
+  "theme.name": "catppuccin_mocha",
+  "theme.matugen": false,
+  
+  "theme.bar.transparent": true,
+  "theme.bar.floating": true,
+  "theme.bar.margin_top": "5",
+  "theme.bar.margin_sides": "10",
+  "theme.bar.border_radius": "10px",
+  
+  "theme.font.name": "JetBrainsMono Nerd Font",
+  "theme.font.size": "11px",
+  
+  "bar.layouts": {
+    "*": {
+      "left": ["workspaces"],
+      "middle": [],
+      "right": ["cpu", "ram", "volume", "battery"]
+    }
+  },
+  
+  "bar.workspaces.show_numbered": true,
+  "bar.workspaces.showWsIcons": false,
+  "bar.workspaces.numbered_active_indicator": "highlight",
+  "bar.workspaces.workspaces": 3,
+  "bar.workspaces.hideUnoccupied": true,
+  
+  "bar.volume.label": false,
+  "bar.battery.label": true,
+  
+  "bar.customModules.cpu.label": true,
+  "bar.customModules.ram.label": true,
+  
+  "menus.clock.weather.enabled": false,
+  
+  "scalingPriority": "hyprland"
+}

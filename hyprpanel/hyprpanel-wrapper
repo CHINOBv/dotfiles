@@ -1,0 +1,14 @@
+#!/bin/bash
+# Wrapper script to run HyprPanel
+# HyprPanel must be installed in ~/.local/src/HyprPanel
+
+HYPRPANEL_DIR="$HOME/.local/src/HyprPanel"
+
+if [[ ! -d "$HYPRPANEL_DIR" ]]; then
+    echo "Error: HyprPanel not installed at $HYPRPANEL_DIR"
+    echo "Install it with: ./install.sh --install-hyprpanel"
+    exit 1
+fi
+
+cd "$HYPRPANEL_DIR"
+exec ags run . "$@"

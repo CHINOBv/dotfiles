@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# HyprPanel Preset Switcher
+# Usage: hyprpanel-preset [preset_name]
+# Available presets: minimal, full, productivity, gaming
+
+PRESETS_DIR="$HOME/dotfiles/hyprpanel/presets"
+CONFIG_FILE="$HOME/.config/hyprpanel/config.json"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+show_help() {
+    echo -e "${CYAN}╭──────────────────────────────────────╮${NC}"
+    echo -e "${CYAN}│${NC}    ${MAGENTA}HyprPanel Preset Switcher${NC}        ${CYAN}│${NC}"
+    echo -e "${CYAN}╰──────────────────────────────────────╯${NC}"
+    echo ""
+    echo -e "${YELLOW}Usage:${NC} hyprpanel-preset [preset]"
+    echo ""
+    echo -e "${YELLOW}Available presets:${NC}"
+    echo -e "  ${GREEN}minimal${NC}      - Clean, distraction-free bar"
+    echo -e "  ${GREEN}full${NC}         - All modules, media player, dashboard"
+    echo -e "  ${GREEN}productivity${NC} - Focus on work, 10 workspaces, timestamps"
+    echo -e "  ${GREEN}gaming${NC}       - Minimal for gaming, CPU/RAM stats"
+    echo ""
+    echo -e "${YELLOW}Examples:${NC}"
+    echo "  hyprpanel-preset minimal"
+    echo "  hyprpanel-preset full"
+    echo ""
+    echo -e "${YELLOW}Commands:${NC}"
+    echo -e "  ${GREEN}list${NC}    - Show available presets"
+    echo -e "  ${GREEN}current${NC} - Show current preset (if saved)"
+    echo -e "  ${GREEN}help${NC}    - Show this help"
+}
+
+list_presets() {
+    echo -e "${CYAN}Available presets:${NC}"
+    for preset in "$PRESETS_DIR"/*.json; do
+        name=$(basename "$preset" .json)
+        echo -e "  ${GREEN}●${NC} $name"
+    done
+}
+
+apply_preset() {
+    local preset="$1"
+    local preset_file="$PRESETS_DIR/$preset.json"
+    
+    if [[ ! -f "$preset_file" ]]; then
+        echo -e "${RED}Error:${NC} Preset '$preset' not found"
+        echo ""
+        list_presets
+        exit 1
+    fi
+    
+    echo -e "${BLUE}Applying preset:${NC} $preset"
+    
+    # Kill current hyprpanel
+    pkill -f "ags run" 2>/dev/null
+    sleep 1
+    
+    # Copy preset to config
+    cp "$preset_file" "$CONFIG_FILE"
+    
+    # Save current preset name
+    echo "$preset" > "$HOME/.config/hyprpanel/.current_preset"
+    
+    # Start hyprpanel
+    echo -e "${YELLOW}Starting HyprPanel...${NC}"
+    "$HOME/.local/bin/hyprpanel" &>/dev/null &
+    
+    sleep 2
+    echo -e "${GREEN}✓${NC} Preset '$preset' applied successfully!"
+}
+
+show_current() {
+    if [[ -f "$HOME/.config/hyprpanel/.current_preset" ]]; then
+        current=$(cat "$HOME/.config/hyprpanel/.current_preset")
+        echo -e "${CYAN}Current preset:${NC} $current"
+    else
+        echo -e "${YELLOW}No preset recorded. Using custom config.${NC}"
+    fi
+}
+
+# Main
+case "$1" in
+    ""|"help"|"-h"|"--help")
+        show_help
+        ;;
+    "list"|"-l")
+        list_presets
+        ;;
+    "current"|"-c")
+        show_current
+        ;;
+    *)
+        apply_preset "$1"
+        ;;
+esac

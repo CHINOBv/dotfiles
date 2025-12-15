@@ -1,0 +1,233 @@
+#!/bin/bash
+
+# HyprPanel Theme Switcher
+# Usage: hyprpanel-theme [theme_name]
+
+THEMES_DIR="$HOME/dotfiles/hyprpanel/themes"
+CONFIG_FILE="$HOME/.config/hyprpanel/config.json"
+CURRENT_FILE="$HOME/.config/hyprpanel/.current_theme"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+DIM='\033[2m'
+NC='\033[0m'
+
+show_help() {
+    echo -e "${CYAN}╭────────────────────────────────────────────╮${NC}"
+    echo -e "${CYAN}│${NC}       ${MAGENTA}HyprPanel Theme Switcher${NC}            ${CYAN}│${NC}"
+    echo -e "${CYAN}╰────────────────────────────────────────────╯${NC}"
+    echo ""
+    echo -e "${YELLOW}Usage:${NC} hyprpanel-theme [theme]"
+    echo ""
+    echo -e "${YELLOW}Base Themes:${NC}"
+    echo -e "  ${GREEN}catppuccin-mocha${NC}    Soothing pastel purple/pink"
+    echo -e "  ${GREEN}tokyo-night${NC}         Deep blue neon cityscape"
+    echo -e "  ${GREEN}nord${NC}                Arctic cool blue tones"
+    echo -e "  ${GREEN}dracula${NC}             Dark purple vampire aesthetic"
+    echo -e "  ${GREEN}rose-pine${NC}           Elegant rosé and pine"
+    echo -e "  ${GREEN}gruvbox${NC}             Retro warm earth tones"
+    echo -e "  ${GREEN}cyberpunk${NC}           Neon pink/cyan futuristic"
+    echo ""
+    echo -e "${YELLOW}Glass Variants (transparent + blur):${NC}"
+    echo -e "  ${GREEN}catppuccin-mocha-glass${NC}"
+    echo -e "  ${GREEN}tokyo-night-glass${NC}"
+    echo -e "  ${GREEN}nord-frost${NC}"
+    echo -e "  ${GREEN}rose-pine-moon${NC}"
+    echo -e "  ${GREEN}dracula-glow${NC}"
+    echo -e "  ${GREEN}midnight-blue${NC}"
+    echo ""
+    echo -e "${YELLOW}Special Variants:${NC}"
+    echo -e "  ${GREEN}catppuccin-mocha-solid${NC}  No transparency, full bar"
+    echo -e "  ${GREEN}cyberpunk-neon${NC}          Sharp edges, neon borders"
+    echo ""
+    echo -e "${YELLOW}Commands:${NC}"
+    echo -e "  ${GREEN}list${NC}       Show all available themes"
+    echo -e "  ${GREEN}current${NC}    Show current theme"
+    echo -e "  ${GREEN}preview${NC}    Preview theme colors"
+    echo -e "  ${GREEN}help${NC}       Show this help"
+    echo ""
+    echo -e "${YELLOW}Examples:${NC}"
+    echo "  hyprpanel-theme catppuccin-mocha-glass"
+    echo "  hyprpanel-theme cyberpunk-neon"
+    echo "  hyprpanel-theme preview tokyo-night"
+}
+
+list_themes() {
+    echo -e "${CYAN}╭────────────────────────────────────────────╮${NC}"
+    echo -e "${CYAN}│${NC}           ${MAGENTA}Available Themes${NC}                 ${CYAN}│${NC}"
+    echo -e "${CYAN}╰────────────────────────────────────────────╯${NC}"
+    echo ""
+    
+    local current=""
+    if [[ -f "$CURRENT_FILE" ]]; then
+        current=$(cat "$CURRENT_FILE")
+    fi
+    
+    for theme in "$THEMES_DIR"/*.json; do
+        name=$(basename "$theme" .json)
+        display_name=$(grep -o '"name": "[^"]*"' "$theme" | cut -d'"' -f4)
+        variant=$(grep -o '"variant": "[^"]*"' "$theme" | cut -d'"' -f4)
+        
+        # Add variant tag
+        local tag=""
+        case "$variant" in
+            "glass") tag="${BLUE}[glass]${NC}" ;;
+            "solid") tag="${DIM}[solid]${NC}" ;;
+            "neon") tag="${MAGENTA}[neon]${NC}" ;;
+            "frost") tag="${CYAN}[frost]${NC}" ;;
+            "glow") tag="${YELLOW}[glow]${NC}" ;;
+            "moon") tag="${MAGENTA}[moon]${NC}" ;;
+        esac
+        
+        # Mark current theme
+        if [[ "$name" == "$current" ]]; then
+            echo -e "  ${GREEN}●${NC} ${GREEN}$name${NC} $tag ${YELLOW}← current${NC}"
+        else
+            echo -e "  ${DIM}○${NC} $name $tag"
+        fi
+    done
+    echo ""
+}
+
+show_current() {
+    if [[ -f "$CURRENT_FILE" ]]; then
+        current=$(cat "$CURRENT_FILE")
+        echo -e "${CYAN}Current theme:${NC} ${GREEN}$current${NC}"
+    else
+        echo -e "${YELLOW}No theme recorded. Using default.${NC}"
+    fi
+}
+
+preview_theme() {
+    local theme="$1"
+    local theme_file="$THEMES_DIR/$theme.json"
+    
+    if [[ ! -f "$theme_file" ]]; then
+        echo -e "${RED}Error:${NC} Theme '$theme' not found"
+        return 1
+    fi
+    
+    local display_name=$(grep -o '"name": "[^"]*"' "$theme_file" | cut -d'"' -f4)
+    local variant=$(grep -o '"variant": "[^"]*"' "$theme_file" | cut -d'"' -f4)
+    
+    echo -e "${CYAN}╭────────────────────────────────────────────╮${NC}"
+    echo -e "${CYAN}│${NC}  ${MAGENTA}$display_name${NC}"
+    echo -e "${CYAN}╰────────────────────────────────────────────╯${NC}"
+    echo ""
+    
+    # Extract colors
+    local bg=$(grep '"theme.bar.background"' "$theme_file" | cut -d'"' -f4)
+    local accent=$(grep '"theme.bar.buttons.icon"' "$theme_file" | cut -d'"' -f4)
+    local text=$(grep '"theme.bar.buttons.text"' "$theme_file" | cut -d'"' -f4)
+    local border=$(grep '"theme.bar.border.color"' "$theme_file" | cut -d'"' -f4)
+    local transparent=$(grep '"theme.bar.transparent"' "$theme_file" | grep -o 'true\|false')
+    local radius=$(grep '"theme.bar.border_radius"' "$theme_file" | cut -d'"' -f4)
+    
+    echo -e "  ${YELLOW}Variant:${NC}     ${variant:-default}"
+    echo -e "  ${YELLOW}Background:${NC}  $bg"
+    echo -e "  ${YELLOW}Accent:${NC}      $accent"
+    echo -e "  ${YELLOW}Text:${NC}        $text"
+    echo -e "  ${YELLOW}Border:${NC}      $border"
+    echo -e "  ${YELLOW}Transparent:${NC} $transparent"
+    echo -e "  ${YELLOW}Radius:${NC}      $radius"
+    echo ""
+}
+
+apply_theme() {
+    local theme="$1"
+    local theme_file="$THEMES_DIR/$theme.json"
+    
+    if [[ ! -f "$theme_file" ]]; then
+        echo -e "${RED}Error:${NC} Theme '$theme' not found"
+        echo ""
+        list_themes
+        exit 1
+    fi
+    
+    local display_name=$(grep -o '"name": "[^"]*"' "$theme_file" | cut -d'"' -f4)
+    
+    echo -e "${BLUE}Applying theme:${NC} $display_name"
+    
+    # Kill current hyprpanel
+    pkill -f "ags run" 2>/dev/null
+    sleep 1
+    
+    # Read current config and merge with theme
+    if [[ -f "$CONFIG_FILE" ]]; then
+        python3 << EOF
+import json
+
+# Load current config
+with open('$CONFIG_FILE', 'r') as f:
+    config = json.load(f)
+
+# Load theme
+with open('$theme_file', 'r') as f:
+    theme = json.load(f)
+
+# Remove metadata from theme
+theme.pop('name', None)
+theme.pop('variant', None)
+
+# Merge: theme colors override config colors
+config.update(theme)
+
+# Ensure matugen is disabled
+config['theme.matugen'] = False
+
+# Write merged config
+with open('$CONFIG_FILE', 'w') as f:
+    json.dump(config, f, indent=2)
+EOF
+    else
+        python3 << EOF
+import json
+with open('$theme_file', 'r') as f:
+    theme = json.load(f)
+theme.pop('name', None)
+theme.pop('variant', None)
+theme['theme.matugen'] = False
+with open('$CONFIG_FILE', 'w') as f:
+    json.dump(theme, f, indent=2)
+EOF
+    fi
+    
+    # Save current theme
+    echo "$theme" > "$CURRENT_FILE"
+    
+    # Start hyprpanel
+    echo -e "${YELLOW}Starting HyprPanel...${NC}"
+    "$HOME/.local/bin/hyprpanel" &>/dev/null &
+    
+    sleep 2
+    echo -e "${GREEN}✓${NC} Theme '${CYAN}$display_name${NC}' applied!"
+}
+
+# Main
+case "$1" in
+    ""|"help"|"-h"|"--help")
+        show_help
+        ;;
+    "list"|"-l")
+        list_themes
+        ;;
+    "current"|"-c")
+        show_current
+        ;;
+    "preview"|"-p")
+        if [[ -z "$2" ]]; then
+            echo -e "${RED}Error:${NC} Specify a theme to preview"
+            echo "  Usage: hyprpanel-theme preview <theme-name>"
+            exit 1
+        fi
+        preview_theme "$2"
+        ;;
+    *)
+        apply_theme "$1"
+        ;;
+esac

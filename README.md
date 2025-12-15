@@ -74,6 +74,9 @@ mkdir C:\tools\netcoredbg -Force
 # Prerequisitos (Ubuntu/Debian)
 sudo apt install neovim git nodejs npm
 
+# Prerequisitos (Fedora)
+sudo dnf install neovim git nodejs dotnet-sdk-8.0
+
 # Prerequisitos (Arch)
 sudo pacman -S neovim git nodejs npm
 
@@ -88,12 +91,78 @@ cd ~/dotfiles
 chmod +x install.sh
 ./install.sh
 
-# netcoredbg (debugger)
-wget https://github.com/Samsung/netcoredbg/releases/latest/download/netcoredbg-linux-amd64.tar.gz
-sudo mkdir -p /usr/local/bin/netcoredbg
-sudo tar -xzf netcoredbg-linux-amd64.tar.gz -C /usr/local/bin
-# O con AUR: yay -S netcoredbg
+# Instalar herramientas de desarrollo (elige una opcion)
+./install.sh --install-dev-tools    # Todas las herramientas
+./install.sh --install-netcoredbg   # Solo .NET debugger
+./install.sh --install-flutter      # Solo Flutter SDK
+./install.sh --install-go           # Solo Go
 ```
+
+### Opciones del script de instalacion
+
+```bash
+./install.sh --help                 # Ver todas las opciones
+./install.sh --force                # Reemplazar configs existentes
+./install.sh --skip-hyprland        # Omitir Hyprland/Waybar/etc
+./install.sh --install-dev-tools    # Instalar netcoredbg + Flutter + Go
+```
+
+### Instalacion manual de herramientas
+
+<details>
+<summary>netcoredbg (.NET debugger)</summary>
+
+```bash
+# 1. Descargar de: https://github.com/Samsung/netcoredbg/releases
+# 2. Extraer e instalar:
+mkdir -p ~/.local/share/netcoredbg
+tar -xzf netcoredbg-linux-amd64.tar.gz -C ~/.local/share/netcoredbg
+# 3. Agregar al PATH (~/.bashrc):
+echo 'export PATH="$HOME/.local/share/netcoredbg/netcoredbg:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+# 4. Verificar:
+netcoredbg --version
+
+# Arch (AUR):
+yay -S netcoredbg
+```
+</details>
+
+<details>
+<summary>Flutter SDK</summary>
+
+```bash
+# 1. Descargar de: https://flutter.dev/docs/get-started/install/linux
+# 2. Extraer:
+mkdir -p ~/.local/share
+tar -xf flutter_linux_*.tar.xz -C ~/.local/share
+# 3. Agregar al PATH (~/.bashrc):
+echo 'export PATH="$HOME/.local/share/flutter/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+# 4. Verificar:
+flutter doctor
+```
+</details>
+
+<details>
+<summary>Go</summary>
+
+```bash
+# Opcion 1: Package manager
+sudo dnf install golang  # Fedora
+sudo pacman -S go        # Arch
+
+# Opcion 2: Manual
+# 1. Descargar de: https://go.dev/dl/
+# 2. Extraer:
+sudo tar -C /usr/local -xzf go*.linux-amd64.tar.gz
+# 3. Agregar al PATH (~/.bashrc):
+echo 'export PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+# 4. Verificar:
+go version
+```
+</details>
 
 ### macOS
 
