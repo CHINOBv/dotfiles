@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# AI Commit Message Generator using OpenCode
+# Follows Git Flow conventions with descriptive messages
+
+set -e
+
+# Get the staged diff (truncated to avoid token limits)
+DIFF=$(git diff --cached --no-color | head -c 4000)
+
+if [ -z "$DIFF" ]; then
+    echo "No staged changes found. Stage your changes first with 'git add'"
+    exit 1
+fi
+
+# Get current branch for context
+BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+
+# Use OpenCode to generate commit message
+~/.opencode/bin/opencode run "Generate a Git commit message following these rules:
+
+## Format
+<type>(<scope>): <short summary>
+
+<body>
+
+## Types (Git Flow style)
+- feat: New feature for the user
+- fix: Bug fix for the user  
+- docs: Documentation only changes
+- style: Formatting, missing semicolons, etc (no code change)
+- refactor: Refactoring production code, no feature/fix
+- perf: Performance improvements
+- test: Adding or refactoring tests
+- chore: Updating build tasks, configs, etc
+- ci: CI/CD changes
+- build: Build system or external dependencies
+
+## Rules
+1. Short summary: max 50 chars, imperative mood (Add, Fix, Update - not Added, Fixed)
+2. Body: Wrap at 72 chars, explain WHAT and WHY (not how)
+3. Scope: The module/component affected (optional but preferred)
+4. Be specific and descriptive
+5. Output ONLY the commit message, no explanations or markdown
+
+## Context
+Current branch: $BRANCH
+
+## Changes
+$DIFF" 2>/dev/null

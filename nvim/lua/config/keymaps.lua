@@ -62,6 +62,32 @@ map("t", "<C-j>", "<C-\\><C-n><C-w>j", { desc = "Go to Lower Window" })
 map("t", "<C-k>", "<C-\\><C-n><C-w>k", { desc = "Go to Upper Window" })
 map("t", "<C-l>", "<C-\\><C-n><C-w>l", { desc = "Go to Right Window" })
 
+-- ============================================================
+-- TERMINALES Y HERRAMIENTAS (Snacks.terminal)
+-- ============================================================
+
+-- Terminal básica (Ctrl+/ es el default de LazyVim, agregamos Ctrl+\)
+map({ "n", "t" }, "<C-\\>", function() Snacks.terminal("bash") end, { desc = "Terminal" })
+map("n", "<leader>tf", function() Snacks.terminal("bash", { win = { position = "float", width = 0.8, height = 0.8, border = "rounded" } }) end, { desc = "Float Terminal" })
+map("n", "<leader>th", function() Snacks.terminal("bash", { win = { position = "bottom", height = 0.3 } }) end, { desc = "Horizontal Terminal" })
+map("n", "<leader>tv", function() Snacks.terminal("bash", { win = { position = "right", width = 0.4 } }) end, { desc = "Vertical Terminal" })
+
+-- OpenCode (Alt+o para evitar conflicto con C-o que es jump back en vim)
+-- Usar ruta completa porque Snacks.terminal usa shell no-interactiva sin PATH completo
+local opencode_cmd = vim.fn.expand("~/.opencode/bin/opencode")
+map({ "n", "t" }, "<A-o>", function() Snacks.terminal(opencode_cmd, { win = { position = "float", width = 0.9, height = 0.85, border = "rounded" } }) end, { desc = "OpenCode" })
+map("n", "<leader>oo", function() Snacks.terminal(opencode_cmd, { win = { position = "float", width = 0.9, height = 0.85, border = "rounded" } }) end, { desc = "OpenCode (Float)" })
+map("n", "<leader>ov", function() Snacks.terminal(opencode_cmd, { win = { position = "right", width = 0.4 } }) end, { desc = "OpenCode (Lateral)" })
+map("n", "<leader>oh", function() Snacks.terminal(opencode_cmd, { win = { position = "bottom", height = 0.3 } }) end, { desc = "OpenCode (Bottom)" })
+
+-- LazyGit
+map("n", "<leader>gg", function() Snacks.lazygit() end, { desc = "LazyGit" })
+
+-- Database CLIs
+map("n", "<leader>Dr", function() Snacks.terminal("redis-cli", { win = { position = "float", width = 0.8, height = 0.8, border = "rounded" } }) end, { desc = "Redis CLI" })
+map("n", "<leader>Dm", function() Snacks.terminal("mongosh", { win = { position = "float", width = 0.85, height = 0.85, border = "rounded" } }) end, { desc = "MongoDB mongosh" })
+map("n", "<leader>Dp", function() Snacks.terminal("psql", { win = { position = "float", width = 0.85, height = 0.85, border = "rounded" } }) end, { desc = "PostgreSQL psql" })
+
 -- H y L para inicio/final de línea (más fácil que ^ y $)
 map({ "n", "v", "o" }, "H", "^", { desc = "Start of Line" })
 map({ "n", "v", "o" }, "L", "$", { desc = "End of Line" })

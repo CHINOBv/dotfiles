@@ -1,6 +1,6 @@
--- Roslyn LSP para C#
+-- Roslyn LSP para C# (requiere .NET 10)
 return {
-  -- Desactivar omnisharp de LazyVim
+  -- Desactivar omnisharp
   {
     "neovim/nvim-lspconfig",
     opts = {
@@ -14,21 +14,12 @@ return {
   {
     "seblj/roslyn.nvim",
     ft = "cs",
-    init = function()
-      -- Agregar roslyn al PATH si no está
-      local roslyn_path = vim.fn.stdpath("data") .. "/roslyn"
-      local current_path = vim.env.PATH or ""
-      if not current_path:find(roslyn_path, 1, true) then
-        vim.env.PATH = roslyn_path .. ";" .. current_path
-      end
-    end,
     opts = {
-      filewatching = "auto",
+      filewatching = "roslyn",
       broad_search = true,
       lock_target = false,
     },
     config = function(_, opts)
-      -- Keymaps para C#
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
           local client = vim.lsp.get_client_by_id(args.data.client_id)
@@ -49,9 +40,6 @@ return {
             map("[d", vim.diagnostic.goto_prev, "Previous Diagnostic")
             map("]d", vim.diagnostic.goto_next, "Next Diagnostic")
             map("<leader>cd", vim.diagnostic.open_float, "Line Diagnostics")
-            map("<leader>ch", function()
-              vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
-            end, "Toggle Inlay Hints")
           end
         end,
       })

@@ -1,0 +1,9 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║                            Bash Profile                                   ║
+# ║              Loaded for login shells - sources ~/.bashrc                  ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+# Source .bashrc if it exists
+if [ -f "$HOME/.bashrc" ]; then
+    . "$HOME/.bashrc"
+fi

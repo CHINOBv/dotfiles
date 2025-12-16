@@ -1,0 +1,131 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║                         Minimal Bash Config                               ║
+# ║           For compatibility with scripts that source ~/.bashrc            ║
+# ║                  Primary shell: Fish (see ~/.config/fish/)                ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+    . /etc/bashrc
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PATH - Keep in sync with Fish config (~/.config/fish/config.fish)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Local binaries
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+
+# Go
+export GOPATH="$HOME/go"
+export PATH="/usr/local/go/bin:$GOPATH/bin:$PATH"
+
+# Rust/Cargo
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# .NET
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$DOTNET_ROOT:$DOTNET_ROOT/tools:$PATH"
+
+# netcoredbg
+export PATH="$HOME/.local/share/netcoredbg/netcoredbg:$PATH"
+
+# Flutter
+export PATH="$HOME/.local/share/flutter/bin:$PATH"
+
+# OpenCode
+export PATH="$HOME/.opencode/bin:$PATH"
+
+# Bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# JetBrains Toolbox
+export PATH="$HOME/.local/share/JetBrains/Toolbox/scripts:$PATH"
+
+# NVM (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ENVIRONMENT
+# ══════════════════════════════════════════════════════════════════════════════
+
+export EDITOR=nvim
+export VISUAL=nvim
+export LANG=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+
+# XDG Base Directories
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_STATE_HOME="$HOME/.local/state"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INTERACTIVE SHELL ONLY
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Exit if not running interactively
+[[ $- != *i* ]] && return
+
+# If Fish is available, switch to Fish automatically
+# Comment this out if you want to stay in Bash
+if command -v fish &> /dev/null; then
+    # Only switch if not already in fish
+    if [[ -z "$FISH_VERSION" ]]; then
+        exec fish
+    fi
+fi
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BASH-SPECIFIC CONFIG (only if staying in Bash)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# History
+HISTSIZE=10000
+HISTFILESIZE=20000
+HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+
+# Better globbing
+shopt -s globstar 2>/dev/null
+shopt -s nocaseglob
+
+# Check window size after each command
+shopt -s checkwinsize
+
+# Aliases
+alias ll='ls -la'
+alias la='ls -a'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias g='git'
+alias v='nvim'
+alias vim='nvim'
+
+# Starship prompt (if available)
+if command -v starship &> /dev/null; then
+    eval "$(starship init bash)"
+fi
+
+# Zoxide (if available)
+if command -v zoxide &> /dev/null; then
+    eval "$(zoxide init bash)"
+fi
+
+# fzf (if available)
+if command -v fzf &> /dev/null; then
+    eval "$(fzf --bash)"
+fi
+
+# direnv (if available)
+if command -v direnv &> /dev/null; then
+    eval "$(direnv hook bash)"
+fi
+
+# Local config (not in git)
+[ -f "$HOME/.bashrc.local" ] && . "$HOME/.bashrc.local"
+export DOTNET_ROOT=/usr/lib64/dotnet

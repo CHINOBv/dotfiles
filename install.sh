@@ -65,6 +65,9 @@ INSTALL_FLUTTER="false"
 INSTALL_GO="false"
 INSTALL_ALL_DEV="false"
 INSTALL_HYPRPANEL="false"
+INSTALL_FISH="false"
+INSTALL_STARSHIP="false"
+SET_FISH_DEFAULT="false"
 for arg in "$@"; do
     case $arg in
         --force|-f)
@@ -90,6 +93,21 @@ for arg in "$@"; do
         --install-hyprpanel)
             INSTALL_HYPRPANEL="true"
             ;;
+        --install-fish)
+            INSTALL_FISH="true"
+            ;;
+        --install-starship)
+            INSTALL_STARSHIP="true"
+            ;;
+        --set-fish-default)
+            INSTALL_FISH="true"
+            SET_FISH_DEFAULT="true"
+            ;;
+        --install-shell)
+            INSTALL_FISH="true"
+            INSTALL_STARSHIP="true"
+            SET_FISH_DEFAULT="true"
+            ;;
         --help|-h)
             echo "Usage: ./install.sh [OPTIONS]"
             echo ""
@@ -101,6 +119,10 @@ for arg in "$@"; do
             echo "  --install-go          Install Go programming language"
             echo "  --install-dev-tools   Install all dev tools (netcoredbg, flutter, go)"
             echo "  --install-hyprpanel   Install HyprPanel (replaces Waybar)"
+            echo "  --install-fish        Install Fish shell and plugins"
+            echo "  --install-starship    Install Starship prompt"
+            echo "  --set-fish-default    Set Fish as default shell (includes --install-fish)"
+            echo "  --install-shell       Install Fish + Starship + set as default"
             echo "  -h, --help            Show this help message"
             exit 0
             ;;
@@ -117,9 +139,80 @@ fi
 
 echo -e "${CYAN}[*] Detected: $DISTRO${NC}\n"
 
+# ===== SHELL (Bash) =====
+echo -e "${CYAN}[*] Installing Bash config...${NC}"
+# Use symlinks for bash to allow real-time config updates
+for bash_file in bashrc bash_profile; do
+    target="$HOME/.${bash_file}"
+    if [[ -L "$target" ]]; then
+        echo -e "${YELLOW}[!] $bash_file symlink already exists${NC}"
+    elif [[ -f "$target" ]]; then
+        if [[ "$FORCE" == "true" ]]; then
+            backup_if_exists "$target" "$bash_file"
+            ln -sf "$SCRIPT_DIR/bash/$bash_file" "$target"
+            echo -e "${GREEN}[OK] $bash_file symlinked${NC}"
+        else
+            echo -e "${YELLOW}[!] ~/.$bash_file already exists. Use --force to replace.${NC}"
+        fi
+    else
+        ln -sf "$SCRIPT_DIR/bash/$bash_file" "$target"
+        echo -e "${GREEN}[OK] $bash_file symlinked${NC}"
+    fi
+done
+
+# ===== SHELL (Fish) =====
+echo -e "\n${CYAN}[*] Installing Fish config...${NC}"
+# Use symlink for Fish to allow real-time config updates
+if [[ -L "$CONFIG_DIR/fish" ]]; then
+    echo -e "${YELLOW}[!] Fish config symlink already exists${NC}"
+elif [[ -d "$CONFIG_DIR/fish" ]]; then
+    if [[ "$FORCE" == "true" ]]; then
+        backup_if_exists "$CONFIG_DIR/fish" "Fish"
+        ln -sf "$SCRIPT_DIR/fish" "$CONFIG_DIR/fish"
+        echo -e "${GREEN}[OK] Fish config symlinked to $CONFIG_DIR/fish${NC}"
+    else
+        echo -e "${YELLOW}[!] Fish config already exists. Use --force to replace.${NC}"
+    fi
+else
+    ln -sf "$SCRIPT_DIR/fish" "$CONFIG_DIR/fish"
+    echo -e "${GREEN}[OK] Fish config symlinked to $CONFIG_DIR/fish${NC}"
+fi
+
+# ===== STARSHIP =====
+echo -e "\n${CYAN}[*] Installing Starship config...${NC}"
+mkdir -p "$CONFIG_DIR"
+if [[ -L "$CONFIG_DIR/starship.toml" ]]; then
+    echo -e "${YELLOW}[!] Starship config symlink already exists${NC}"
+elif [[ -f "$CONFIG_DIR/starship.toml" ]]; then
+    if [[ "$FORCE" == "true" ]]; then
+        backup_if_exists "$CONFIG_DIR/starship.toml" "Starship"
+        ln -sf "$SCRIPT_DIR/starship/starship.toml" "$CONFIG_DIR/starship.toml"
+        echo -e "${GREEN}[OK] Starship config symlinked${NC}"
+    else
+        echo -e "${YELLOW}[!] Starship config already exists. Use --force to replace.${NC}"
+    fi
+else
+    ln -sf "$SCRIPT_DIR/starship/starship.toml" "$CONFIG_DIR/starship.toml"
+    echo -e "${GREEN}[OK] Starship config symlinked${NC}"
+fi
+
 # ===== NEOVIM =====
-echo -e "${CYAN}[*] Installing Neovim config...${NC}"
-install_config "$SCRIPT_DIR/nvim" "$CONFIG_DIR/nvim" "Neovim"
+echo -e "\n${CYAN}[*] Installing Neovim config...${NC}"
+# Use symlink for Neovim to allow real-time config updates
+if [[ -L "$CONFIG_DIR/nvim" ]]; then
+    echo -e "${YELLOW}[!] Neovim config symlink already exists${NC}"
+elif [[ -d "$CONFIG_DIR/nvim" ]]; then
+    if [[ "$FORCE" == "true" ]]; then
+        backup_if_exists "$CONFIG_DIR/nvim" "Neovim"
+        ln -sf "$SCRIPT_DIR/nvim" "$CONFIG_DIR/nvim"
+        echo -e "${GREEN}[OK] Neovim config symlinked to $CONFIG_DIR/nvim${NC}"
+    else
+        echo -e "${YELLOW}[!] Neovim config already exists. Use --force to replace.${NC}"
+    fi
+else
+    ln -sf "$SCRIPT_DIR/nvim" "$CONFIG_DIR/nvim"
+    echo -e "${GREEN}[OK] Neovim config symlinked to $CONFIG_DIR/nvim${NC}"
+fi
 
 # ===== TERMINALS =====
 echo -e "\n${CYAN}[*] Installing terminal configs...${NC}"
@@ -565,6 +658,171 @@ if [[ "$INSTALL_HYPRPANEL" == "true" ]]; then
     install_hyprpanel
 fi
 
+# ===== FISH SHELL =====
+install_fish() {
+    echo -e "\n${CYAN}[*] Installing Fish shell...${NC}"
+    
+    # Check if Fish is already installed
+    if command -v fish &> /dev/null; then
+        echo -e "${GREEN}[OK] Fish is already installed${NC}"
+        fish --version
+    else
+        echo -e "${CYAN}[*] Installing Fish...${NC}"
+        if [[ "$DISTRO" == "fedora" ]]; then
+            sudo dnf install -y fish
+        elif [[ "$DISTRO" == "arch" ]]; then
+            sudo pacman -S --noconfirm fish
+        elif [[ "$DISTRO" == "ubuntu" ]] || [[ "$DISTRO" == "debian" ]]; then
+            sudo apt install -y fish
+        else
+            echo -e "${RED}[!] Unknown distro. Please install Fish manually.${NC}"
+            return 1
+        fi
+    fi
+    
+    # Install Fisher (Fish plugin manager)
+    echo -e "${CYAN}[*] Installing Fisher plugin manager...${NC}"
+    if fish -c "type -q fisher" 2>/dev/null; then
+        echo -e "${GREEN}[OK] Fisher is already installed${NC}"
+    else
+        fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
+        echo -e "${GREEN}[OK] Fisher installed${NC}"
+    fi
+    
+    # Install Fish plugins from fish_plugins file
+    echo -e "${CYAN}[*] Installing Fish plugins...${NC}"
+    fish -c "fisher update"
+    echo -e "${GREEN}[OK] Fish plugins installed${NC}"
+    
+    # Install additional CLI tools for Fish
+    echo -e "${CYAN}[*] Checking additional CLI tools...${NC}"
+    
+    # zoxide (smart cd)
+    if ! command -v zoxide &> /dev/null; then
+        echo -e "${CYAN}[*] Installing zoxide...${NC}"
+        if [[ "$DISTRO" == "fedora" ]]; then
+            sudo dnf install -y zoxide
+        elif [[ "$DISTRO" == "arch" ]]; then
+            sudo pacman -S --noconfirm zoxide
+        else
+            curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+        fi
+    else
+        echo -e "${GREEN}[OK] zoxide is already installed${NC}"
+    fi
+    
+    # fzf (fuzzy finder)
+    if ! command -v fzf &> /dev/null; then
+        echo -e "${CYAN}[*] Installing fzf...${NC}"
+        if [[ "$DISTRO" == "fedora" ]]; then
+            sudo dnf install -y fzf
+        elif [[ "$DISTRO" == "arch" ]]; then
+            sudo pacman -S --noconfirm fzf
+        else
+            git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && ~/.fzf/install --all
+        fi
+    else
+        echo -e "${GREEN}[OK] fzf is already installed${NC}"
+    fi
+    
+    # eza (modern ls)
+    if ! command -v eza &> /dev/null; then
+        echo -e "${CYAN}[*] Installing eza...${NC}"
+        if [[ "$DISTRO" == "fedora" ]]; then
+            sudo dnf install -y eza 2>/dev/null || cargo install eza
+        elif [[ "$DISTRO" == "arch" ]]; then
+            sudo pacman -S --noconfirm eza
+        else
+            cargo install eza
+        fi
+    else
+        echo -e "${GREEN}[OK] eza is already installed${NC}"
+    fi
+    
+    # bat (modern cat)
+    if ! command -v bat &> /dev/null; then
+        echo -e "${CYAN}[*] Installing bat...${NC}"
+        if [[ "$DISTRO" == "fedora" ]]; then
+            sudo dnf install -y bat
+        elif [[ "$DISTRO" == "arch" ]]; then
+            sudo pacman -S --noconfirm bat
+        fi
+    else
+        echo -e "${GREEN}[OK] bat is already installed${NC}"
+    fi
+    
+    # fd (modern find)
+    if ! command -v fd &> /dev/null; then
+        echo -e "${CYAN}[*] Installing fd...${NC}"
+        if [[ "$DISTRO" == "fedora" ]]; then
+            sudo dnf install -y fd-find
+        elif [[ "$DISTRO" == "arch" ]]; then
+            sudo pacman -S --noconfirm fd
+        fi
+    else
+        echo -e "${GREEN}[OK] fd is already installed${NC}"
+    fi
+    
+    # ripgrep (modern grep)
+    if ! command -v rg &> /dev/null; then
+        echo -e "${CYAN}[*] Installing ripgrep...${NC}"
+        if [[ "$DISTRO" == "fedora" ]]; then
+            sudo dnf install -y ripgrep
+        elif [[ "$DISTRO" == "arch" ]]; then
+            sudo pacman -S --noconfirm ripgrep
+        fi
+    else
+        echo -e "${GREEN}[OK] ripgrep is already installed${NC}"
+    fi
+    
+    echo -e "${GREEN}[OK] Fish shell setup complete!${NC}"
+}
+
+if [[ "$INSTALL_FISH" == "true" ]]; then
+    install_fish
+fi
+
+# ===== STARSHIP PROMPT =====
+install_starship() {
+    echo -e "\n${CYAN}[*] Installing Starship prompt...${NC}"
+    
+    if command -v starship &> /dev/null; then
+        echo -e "${GREEN}[OK] Starship is already installed${NC}"
+        starship --version
+    else
+        echo -e "${CYAN}[*] Installing Starship...${NC}"
+        curl -sS https://starship.rs/install.sh | sh -s -- -y
+        echo -e "${GREEN}[OK] Starship installed${NC}"
+    fi
+}
+
+if [[ "$INSTALL_STARSHIP" == "true" ]]; then
+    install_starship
+fi
+
+# ===== SET FISH AS DEFAULT SHELL =====
+if [[ "$SET_FISH_DEFAULT" == "true" ]]; then
+    echo -e "\n${CYAN}[*] Setting Fish as default shell...${NC}"
+    
+    FISH_PATH=$(which fish)
+    
+    # Add fish to /etc/shells if not already there
+    if ! grep -q "$FISH_PATH" /etc/shells; then
+        echo -e "${CYAN}[*] Adding Fish to /etc/shells...${NC}"
+        echo "$FISH_PATH" | sudo tee -a /etc/shells
+    fi
+    
+    # Change default shell
+    if [[ "$SHELL" != "$FISH_PATH" ]]; then
+        echo -e "${CYAN}[*] Changing default shell to Fish...${NC}"
+        chsh -s "$FISH_PATH"
+        echo -e "${GREEN}[OK] Default shell changed to Fish${NC}"
+        echo -e "${YELLOW}[!] Log out and log back in for changes to take effect${NC}"
+    else
+        echo -e "${GREEN}[OK] Fish is already your default shell${NC}"
+    fi
+fi
+
 # ===== INFORMACIÓN =====
 echo -e "\n${CYAN}========================================${NC}"
 echo -e "${CYAN}  Installation complete!${NC}"
@@ -625,6 +883,21 @@ echo "  sudo pacman -S go        # Arch"
 
 echo -e "\n${YELLOW}Install all dev tools at once:${NC}"
 echo "  ./install.sh --install-dev-tools"
+
+echo -e "\n${YELLOW}For Fish shell (recommended):${NC}"
+echo "  ./install.sh --install-shell"
+echo ""
+echo "  This installs:"
+echo "    - Fish shell (modern, user-friendly shell)"
+echo "    - Starship prompt (cross-shell prompt)"
+echo "    - Fisher (plugin manager)"
+echo "    - zoxide, fzf, eza, bat, fd, ripgrep"
+echo "    - Sets Fish as default shell"
+echo ""
+echo "  Individual options:"
+echo "    --install-fish        Install Fish + plugins only"
+echo "    --install-starship    Install Starship prompt only"
+echo "    --set-fish-default    Install Fish + set as default"
 
 echo -e "\n${YELLOW}For HyprPanel (modern Waybar replacement):${NC}"
 echo "  ./install.sh --install-hyprpanel"

@@ -3,11 +3,21 @@
 # HyprPanel must be installed in ~/.local/src/HyprPanel
 
 HYPRPANEL_DIR="$HOME/.local/src/HyprPanel"
+CONFIG_DIR="$HOME/.config/hyprpanel"
+DOTFILES_CONFIG="$HOME/dotfiles/hyprpanel/config/config.json"
 
 if [[ ! -d "$HYPRPANEL_DIR" ]]; then
     echo "Error: HyprPanel not installed at $HYPRPANEL_DIR"
     echo "Install it with: ./install.sh --install-hyprpanel"
     exit 1
+fi
+
+# Ensure config directory exists
+mkdir -p "$CONFIG_DIR"
+
+# Restore config from dotfiles if it exists
+if [[ -f "$DOTFILES_CONFIG" ]]; then
+    cp "$DOTFILES_CONFIG" "$CONFIG_DIR/config.json"
 fi
 
 cd "$HYPRPANEL_DIR"
