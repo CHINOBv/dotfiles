@@ -40,7 +40,37 @@ return {
             map("[d", vim.diagnostic.goto_prev, "Previous Diagnostic")
             map("]d", vim.diagnostic.goto_next, "Next Diagnostic")
             map("<leader>cd", vim.diagnostic.open_float, "Line Diagnostics")
+
+            -- Organize imports on demand
+            map("<leader>co", function()
+              vim.lsp.buf.code_action({
+                apply = true,
+                context = { only = { "source.organizeImports" } },
+              })
+            end, "Organize Imports")
+
+            -- Add missing import (quick fix)
+            map("<leader>ci", function()
+              vim.lsp.buf.code_action({
+                apply = true,
+                context = { only = { "quickfix" } },
+                filter = function(action)
+                  return action.title and action.title:match("using")
+                end,
+              })
+            end, "Add Missing Import")
           end
+        end,
+      })
+
+      -- Auto organize imports on save for C# files
+      vim.api.nvim_create_autocmd("BufWritePre", {
+        pattern = "*.cs",
+        callback = function()
+          vim.lsp.buf.code_action({
+            apply = true,
+            context = { only = { "source.organizeImports" } },
+          })
         end,
       })
 

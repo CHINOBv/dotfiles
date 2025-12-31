@@ -129,3 +129,4 @@ fi
 # Local config (not in git)
 [ -f "$HOME/.bashrc.local" ] && . "$HOME/.bashrc.local"
 export DOTNET_ROOT=/usr/lib64/dotnet
+export PATH="$PATH:/snap/bin"
