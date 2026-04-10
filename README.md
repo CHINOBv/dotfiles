@@ -105,6 +105,11 @@ chmod +x install.sh
 ./install.sh --force                # Reemplazar configs existentes
 ./install.sh --skip-hyprland        # Omitir Hyprland/Waybar/etc
 ./install.sh --install-dev-tools    # Instalar netcoredbg + Flutter + Go
+./install.sh --install-ai-tools     # Forzar OpenCode + Gentle AI
+./install.sh --only-gentle-ai       # Instalar/actualizar solo Gentle AI
+./install.sh --install-gentle-ai    # Forzar instalacion/actualizacion de Gentle AI
+./install.sh --skip-ai-tools        # Omitir OpenCode + Gentle AI
+./install.sh --skip-gentle-ai       # Omitir Gentle AI durante la instalacion
 ```
 
 ### Instalacion manual de herramientas
@@ -184,6 +189,106 @@ brew install netcoredbg
 ### Roslyn LSP (IntelliSense C#)
 
 Se instala automaticamente con el plugin `roslyn.nvim` en todas las plataformas.
+
+## Gentle AI
+
+`Gentle AI` se instala automaticamente por defecto en Linux/macOS y Windows.
+
+Si ya esta instalado, el script no lo reinstala salvo que lo fuerces con la opcion dedicada.
+
+## AI Tools
+
+`OpenCode` y `Gentle AI` ahora se instalan automaticamente por defecto.
+
+Si ya existen, el installer no los reinstala salvo que uses la opcion para forzar actualizacion.
+
+### Instalar OpenCode + Gentle AI
+
+#### Linux / macOS
+
+```bash
+./install.sh --install-ai-tools
+```
+
+#### Windows
+
+```powershell
+.\install.ps1 -InstallAITools
+```
+
+En Windows, OpenCode se instala con este orden de prioridad:
+1. `scoop install opencode`
+2. `npm install -g opencode-ai@latest`
+
+Si no existe `scoop` ni `npm`, la instalacion de OpenCode falla de forma explicita.
+
+### Omitir OpenCode + Gentle AI
+
+#### Linux / macOS
+
+```bash
+./install.sh --skip-ai-tools
+```
+
+#### Windows
+
+```powershell
+.\install.ps1 -SkipAITools
+```
+
+### Instalar solo Gentle AI
+
+#### Linux / macOS
+
+```bash
+./install.sh --only-gentle-ai
+```
+
+#### Windows
+
+```powershell
+.\install.ps1 -OnlyGentleAI
+```
+
+### Forzar instalacion/actualizacion de Gentle AI
+
+#### Linux / macOS
+
+```bash
+./install.sh --install-gentle-ai
+```
+
+#### Windows
+
+```powershell
+.\install.ps1 -InstallGentleAI
+```
+
+### Omitir Gentle AI durante la instalacion
+
+#### Linux / macOS
+
+```bash
+./install.sh --skip-gentle-ai
+```
+
+#### Windows
+
+```powershell
+.\install.ps1 -SkipGentleAI
+```
+
+### Ejecutar Gentle AI
+
+```bash
+gentle-ai
+```
+
+La instalacion delega al instalador oficial del proyecto:
+- Linux/macOS: `scripts/install.sh` de `Gentleman-Programming/gentle-ai`
+- Windows: `scripts/install.ps1` de `Gentleman-Programming/gentle-ai`
+
+Eso reduce mantenimiento local y mantiene el flujo alineado con upstream.
 
 ## Keymaps Principales
 

@@ -68,6 +68,11 @@ INSTALL_HYPRPANEL="false"
 INSTALL_FISH="false"
 INSTALL_STARSHIP="false"
 SET_FISH_DEFAULT="false"
+INSTALL_GENTLE_AI="true"
+FORCE_GENTLE_AI="false"
+INSTALL_OPENCODE="true"
+FORCE_OPENCODE="false"
+ONLY_GENTLE_AI="false"
 for arg in "$@"; do
     case $arg in
         --force|-f)
@@ -108,6 +113,31 @@ for arg in "$@"; do
             INSTALL_STARSHIP="true"
             SET_FISH_DEFAULT="true"
             ;;
+        --install-gentle-ai)
+            INSTALL_GENTLE_AI="true"
+            FORCE_GENTLE_AI="true"
+            ;;
+        --skip-gentle-ai)
+            INSTALL_GENTLE_AI="false"
+            FORCE_GENTLE_AI="false"
+            ;;
+        --skip-ai-tools)
+            INSTALL_GENTLE_AI="false"
+            FORCE_GENTLE_AI="false"
+            INSTALL_OPENCODE="false"
+            FORCE_OPENCODE="false"
+            ;;
+        --only-gentle-ai)
+            INSTALL_GENTLE_AI="true"
+            FORCE_GENTLE_AI="true"
+            ONLY_GENTLE_AI="true"
+            ;;
+        --install-ai-tools)
+            INSTALL_GENTLE_AI="true"
+            FORCE_GENTLE_AI="true"
+            INSTALL_OPENCODE="true"
+            FORCE_OPENCODE="true"
+            ;;
         --help|-h)
             echo "Usage: ./install.sh [OPTIONS]"
             echo ""
@@ -123,11 +153,269 @@ for arg in "$@"; do
             echo "  --install-starship    Install Starship prompt"
             echo "  --set-fish-default    Set Fish as default shell (includes --install-fish)"
             echo "  --install-shell       Install Fish + Starship + set as default"
+            echo "  --install-gentle-ai   Install/update Gentle AI"
+            echo "  --skip-gentle-ai      Skip Gentle AI auto-install"
+            echo "  --skip-ai-tools       Skip OpenCode + Gentle AI auto-install"
+            echo "  --only-gentle-ai      Install/update Gentle AI only and exit"
+            echo "  --install-ai-tools    Install/update OpenCode + Gentle AI"
             echo "  -h, --help            Show this help message"
             exit 0
             ;;
     esac
 done
+
+get_tool_version() {
+    local binary="$1"
+    "$binary" version 2>/dev/null || "$binary" --version 2>/dev/null || printf 'installed'
+}
+
+get_gentle_ai_bin() {
+    if command -v gentle-ai &>/dev/null; then
+        command -v gentle-ai
+        return 0
+    fi
+
+    local candidates=(
+        "$HOME/.local/bin/gentle-ai"
+        "/usr/local/bin/gentle-ai"
+        "$HOME/go/bin/gentle-ai"
+    )
+
+    for candidate in "${candidates[@]}"; do
+        if [[ -x "$candidate" ]]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+get_opencode_bin() {
+    if command -v opencode &>/dev/null; then
+        command -v opencode
+        return 0
+    fi
+
+    local candidates=(
+        "$HOME/.opencode/bin/opencode"
+        "$HOME/bin/opencode"
+        "/usr/local/bin/opencode"
+    )
+
+    for candidate in "${candidates[@]}"; do
+        if [[ -x "$candidate" ]]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+cleanup_temp_file() {
+    local temp_file="$1"
+
+    if [[ -n "$temp_file" && -e "$temp_file" ]]; then
+        rm -f "$temp_file"
+    fi
+}
+
+set_ai_tool_state() {
+    local tool="$1"
+    local status="$2"
+    local detail="${3:-}"
+    local path="${4:-}"
+
+    case "$tool" in
+        gentle-ai)
+            GENTLE_AI_STATUS="$status"
+            GENTLE_AI_DETAIL="$detail"
+            GENTLE_AI_PATH="$path"
+            ;;
+        opencode)
+            OPENCODE_STATUS="$status"
+            OPENCODE_DETAIL="$detail"
+            OPENCODE_PATH="$path"
+            ;;
+    esac
+}
+
+print_ai_tool_status() {
+    local name="$1"
+    local status="$2"
+    local detail="$3"
+    local path="$4"
+    local line="  $name: $status"
+
+    if [[ -n "$detail" ]]; then
+        line+=" ($detail)"
+    fi
+
+    echo "$line"
+
+    if [[ -n "$path" ]]; then
+        echo "    Path: $path"
+    fi
+}
+
+print_ai_tools_summary() {
+    echo -e "\n${YELLOW}AI tools status:${NC}"
+
+    print_ai_tool_status "Gentle AI" "$GENTLE_AI_STATUS" "$GENTLE_AI_DETAIL" "$GENTLE_AI_PATH"
+    print_ai_tool_status "OpenCode" "$OPENCODE_STATUS" "$OPENCODE_DETAIL" "$OPENCODE_PATH"
+}
+
+install_gentle_ai() {
+    local force_install="${1:-false}"
+    local existing_bin=""
+    local installed_bin=""
+    local temp_script=""
+
+    existing_bin="$(get_gentle_ai_bin 2>/dev/null || true)"
+
+    if [[ "$force_install" != "true" ]] && [[ -n "$existing_bin" ]]; then
+        set_ai_tool_state gentle-ai "already installed" "$(get_tool_version "$existing_bin")" "$existing_bin"
+        echo -e "\n${GREEN}[OK] Gentle AI already available: $(get_tool_version "$existing_bin")${NC}"
+        return 0
+    fi
+
+    echo -e "\n${CYAN}[*] Installing Gentle AI...${NC}"
+
+    local installer_url="https://raw.githubusercontent.com/Gentleman-Programming/gentle-ai/main/scripts/install.sh"
+
+    if ! command -v curl &> /dev/null; then
+        set_ai_tool_state gentle-ai "failed" "missing prerequisite: curl" "$existing_bin"
+        echo -e "${RED}[!] curl is required to install Gentle AI${NC}"
+        return 1
+    fi
+
+    if ! command -v git &> /dev/null; then
+        set_ai_tool_state gentle-ai "failed" "missing prerequisite: git" "$existing_bin"
+        echo -e "${RED}[!] git is required to install Gentle AI${NC}"
+        return 1
+    fi
+
+    if ! temp_script="$(mktemp /tmp/gentle-ai-install.XXXXXX.sh)"; then
+        set_ai_tool_state gentle-ai "failed" "could not create temporary installer file" "$existing_bin"
+        echo -e "${RED}[!] Failed to create temporary file for Gentle AI installer${NC}"
+        return 1
+    fi
+
+    if ! curl -fsSL "$installer_url" -o "$temp_script"; then
+        cleanup_temp_file "$temp_script"
+        set_ai_tool_state gentle-ai "failed" "failed to download installer" "$existing_bin"
+        echo -e "${RED}[!] Failed to download Gentle AI installer${NC}"
+        return 1
+    fi
+
+    if ! chmod +x "$temp_script"; then
+        cleanup_temp_file "$temp_script"
+        set_ai_tool_state gentle-ai "failed" "downloaded installer is not executable" "$existing_bin"
+        echo -e "${RED}[!] Failed to prepare Gentle AI installer${NC}"
+        return 1
+    fi
+
+    if ! bash "$temp_script" --method binary; then
+        cleanup_temp_file "$temp_script"
+        set_ai_tool_state gentle-ai "failed" "installer exited with an error" "$existing_bin"
+        echo -e "${RED}[!] Gentle AI installation failed${NC}"
+        return 1
+    fi
+
+    cleanup_temp_file "$temp_script"
+
+    if installed_bin="$(get_gentle_ai_bin 2>/dev/null)"; then
+        set_ai_tool_state gentle-ai "installed" "$(get_tool_version "$installed_bin")" "$installed_bin"
+        echo -e "${GREEN}[OK] Gentle AI available: $(get_tool_version "$installed_bin")${NC}"
+        return 0
+    fi
+
+    set_ai_tool_state gentle-ai "failed" "installer completed but binary was not detected" "$existing_bin"
+    echo -e "${RED}[!] Gentle AI installer completed but the binary was not detected${NC}"
+    return 1
+}
+
+install_opencode() {
+    local force_install="${1:-false}"
+    local existing_bin=""
+    local installed_bin=""
+    local temp_script=""
+
+    existing_bin="$(get_opencode_bin 2>/dev/null || true)"
+
+    if [[ "$force_install" != "true" ]] && [[ -n "$existing_bin" ]]; then
+        set_ai_tool_state opencode "already installed" "$(get_tool_version "$existing_bin")" "$existing_bin"
+        echo -e "\n${GREEN}[OK] OpenCode already available: $(get_tool_version "$existing_bin")${NC}"
+        return 0
+    fi
+
+    echo -e "\n${CYAN}[*] Installing OpenCode...${NC}"
+
+    local installer_url="https://opencode.ai/install"
+
+    if ! command -v curl &> /dev/null; then
+        set_ai_tool_state opencode "failed" "missing prerequisite: curl" "$existing_bin"
+        echo -e "${RED}[!] curl is required to install OpenCode${NC}"
+        return 1
+    fi
+
+    if ! temp_script="$(mktemp /tmp/opencode-install.XXXXXX.sh)"; then
+        set_ai_tool_state opencode "failed" "could not create temporary installer file" "$existing_bin"
+        echo -e "${RED}[!] Failed to create temporary file for OpenCode installer${NC}"
+        return 1
+    fi
+
+    if ! curl -fsSL "$installer_url" -o "$temp_script"; then
+        cleanup_temp_file "$temp_script"
+        set_ai_tool_state opencode "failed" "failed to download installer" "$existing_bin"
+        echo -e "${RED}[!] Failed to download OpenCode installer${NC}"
+        return 1
+    fi
+
+    if ! chmod +x "$temp_script"; then
+        cleanup_temp_file "$temp_script"
+        set_ai_tool_state opencode "failed" "downloaded installer is not executable" "$existing_bin"
+        echo -e "${RED}[!] Failed to prepare OpenCode installer${NC}"
+        return 1
+    fi
+
+    if ! bash "$temp_script" --no-modify-path; then
+        cleanup_temp_file "$temp_script"
+        set_ai_tool_state opencode "failed" "installer exited with an error" "$existing_bin"
+        echo -e "${RED}[!] OpenCode installation failed${NC}"
+        return 1
+    fi
+
+    cleanup_temp_file "$temp_script"
+
+    if installed_bin="$(get_opencode_bin 2>/dev/null)"; then
+        set_ai_tool_state opencode "installed" "$(get_tool_version "$installed_bin")" "$installed_bin"
+        echo -e "${GREEN}[OK] OpenCode available: $(get_tool_version "$installed_bin")${NC}"
+        return 0
+    fi
+
+    set_ai_tool_state opencode "failed" "installer completed but binary was not detected" "$existing_bin"
+    echo -e "${RED}[!] OpenCode installer completed but the binary was not detected${NC}"
+    return 1
+}
+
+GENTLE_AI_STATUS="pending"
+GENTLE_AI_DETAIL=""
+GENTLE_AI_PATH=""
+OPENCODE_STATUS="pending"
+OPENCODE_DETAIL=""
+OPENCODE_PATH=""
+
+if [[ "$INSTALL_GENTLE_AI" != "true" ]]; then
+    set_ai_tool_state gentle-ai "skipped" "not requested"
+fi
+
+if [[ "$ONLY_GENTLE_AI" == "true" ]]; then
+    set_ai_tool_state opencode "skipped" "only Gentle AI mode"
+elif [[ "$INSTALL_OPENCODE" != "true" ]]; then
+    set_ai_tool_state opencode "skipped" "not requested"
+fi
 
 # Detectar distro
 if [[ -f /etc/os-release ]]; then
@@ -138,6 +426,17 @@ else
 fi
 
 echo -e "${CYAN}[*] Detected: $DISTRO${NC}\n"
+
+if [[ "$ONLY_GENTLE_AI" == "true" ]]; then
+    if install_gentle_ai "true"; then
+        echo -e "\n${GREEN}[OK] Gentle AI only installation complete!${NC}"
+        print_ai_tools_summary
+        exit 0
+    fi
+
+    print_ai_tools_summary
+    exit 1
+fi
 
 # ===== SHELL (Bash) =====
 echo -e "${CYAN}[*] Installing Bash config...${NC}"
@@ -212,6 +511,26 @@ elif [[ -d "$CONFIG_DIR/nvim" ]]; then
 else
     ln -sf "$SCRIPT_DIR/nvim" "$CONFIG_DIR/nvim"
     echo -e "${GREEN}[OK] Neovim config symlinked to $CONFIG_DIR/nvim${NC}"
+fi
+
+# ===== GENTLE AI =====
+if [[ "$INSTALL_GENTLE_AI" == "true" ]]; then
+    if ! install_gentle_ai "$FORCE_GENTLE_AI"; then
+        echo -e "${YELLOW}[!] Continuing without Gentle AI${NC}"
+    fi
+else
+    set_ai_tool_state gentle-ai "skipped" "not requested"
+    echo -e "\n${YELLOW}[!] Skipping Gentle AI installation${NC}"
+fi
+
+# ===== OPENCODE =====
+if [[ "$INSTALL_OPENCODE" == "true" ]]; then
+    if ! install_opencode "$FORCE_OPENCODE"; then
+        echo -e "${YELLOW}[!] Continuing without OpenCode${NC}"
+    fi
+else
+    set_ai_tool_state opencode "skipped" "not requested"
+    echo -e "\n${YELLOW}[!] Skipping OpenCode installation${NC}"
 fi
 
 # ===== TERMINALS =====
@@ -883,6 +1202,20 @@ echo "  sudo pacman -S go        # Arch"
 
 echo -e "\n${YELLOW}Install all dev tools at once:${NC}"
 echo "  ./install.sh --install-dev-tools"
+
+echo -e "\n${YELLOW}For AI tools:${NC}"
+echo "  ./install.sh --install-ai-tools   # Force install/update OpenCode + Gentle AI"
+echo "  ./install.sh --skip-ai-tools      # Skip OpenCode + Gentle AI"
+echo "  opencode                          # Launch OpenCode"
+echo "  gentle-ai                         # Launch Gentle AI"
+
+print_ai_tools_summary
+
+echo -e "\n${YELLOW}For Gentle AI (installed automatically by default):${NC}"
+echo "  gentle-ai                       # Launch Gentle AI"
+echo "  ./install.sh --only-gentle-ai   # Install/update only Gentle AI"
+echo "  ./install.sh --install-gentle-ai # Force Gentle AI install/update"
+echo "  ./install.sh --skip-gentle-ai   # Skip it during dotfiles install"
 
 echo -e "\n${YELLOW}For Fish shell (recommended):${NC}"
 echo "  ./install.sh --install-shell"
