@@ -72,7 +72,7 @@ export XDG_STATE_HOME="$HOME/.local/state"
 
 # If Fish is available, switch to Fish automatically
 # Comment this out if you want to stay in Bash
-if command -v fish &> /dev/null; then
+if command -v fish &>/dev/null; then
     # Only switch if not already in fish
     if [[ -z "$FISH_VERSION" ]]; then
         exec fish
@@ -107,22 +107,22 @@ alias v='nvim'
 alias vim='nvim'
 
 # Starship prompt (if available)
-if command -v starship &> /dev/null; then
+if command -v starship &>/dev/null; then
     eval "$(starship init bash)"
 fi
 
 # Zoxide (if available)
-if command -v zoxide &> /dev/null; then
+if command -v zoxide &>/dev/null; then
     eval "$(zoxide init bash)"
 fi
 
 # fzf (if available)
-if command -v fzf &> /dev/null; then
+if command -v fzf &>/dev/null; then
     eval "$(fzf --bash)"
 fi
 
 # direnv (if available)
-if command -v direnv &> /dev/null; then
+if command -v direnv &>/dev/null; then
     eval "$(direnv hook bash)"
 fi
 
@@ -130,3 +130,9 @@ fi
 [ -f "$HOME/.bashrc.local" ] && . "$HOME/.bashrc.local"
 export DOTNET_ROOT=/usr/lib64/dotnet
 export PATH="$PATH:/snap/bin"
+export GOOGLE_APPLICATION_CREDENTIALS="/home/david/workspace/DX/Backend/Apps/Transfers.Api/serviceAccountKey.json"
+export PATH="$HOME/.npm-global/bin:$PATH"
+
+. "$HOME/.local/share/../bin/env"
+export GOOGLE_VERTEX_PROJECT="directo-express"
+export GOOGLE_VERTEX_LOCATION="us-central1"
