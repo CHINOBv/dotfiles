@@ -6,9 +6,17 @@ set -euo pipefail
 
 OPENCODE_BIN="${OPENCODE_BIN:-$HOME/.opencode/bin/opencode}"
 MODEL="${AI_COMMIT_MODEL:-opencode-go/kimi-k2.5}"
+AGENT="${AI_COMMIT_AGENT:-gentleman}"
 MAX_DIFF_CHARS="${AI_COMMIT_MAX_DIFF_CHARS:-8000}"
 MAX_LOG_COMMITS="${AI_COMMIT_LOG_COMMITS:-5}"
 ACTION="print"
+DEBUG=0
+
+debug_log() {
+  if [ "$DEBUG" -eq 1 ]; then
+    printf '%s\n' "[ai-commit][debug] $*" >&2
+  fi
+}
 
 require_command() {
   local command_name="$1"
@@ -22,27 +30,31 @@ require_command() {
 print_help() {
   cat <<EOF
 Usage:
-  scripts/ai-commit [--help] [--copy | --commit]
+  scripts/ai-commit [--help] [--debug] [--copy | --commit]
 
 Description:
   Generate a conventional commit message from staged changes using OpenCode.
 
 Options:
   --help    Show this help message.
+  --debug   Print internal diagnostics to stderr.
   --copy    Copy the generated commit message to the clipboard.
   --commit  Create the git commit using the generated message.
 
 Environment variables:
   OPENCODE_BIN              Path to the OpenCode binary.
   AI_COMMIT_MODEL           Model to use.
+  AI_COMMIT_AGENT           OpenCode agent to use.
   AI_COMMIT_MAX_DIFF_CHARS  Max staged diff chars sent to the model.
   AI_COMMIT_LOG_COMMITS     Number of recent commits used for style context.
 
 Examples:
   git add . && scripts/ai-commit
+  scripts/ai-commit --debug
   scripts/ai-commit --copy
   scripts/ai-commit --commit
   AI_COMMIT_MODEL=opencode/kimi-k2.5 scripts/ai-commit
+  AI_COMMIT_AGENT=gentleman scripts/ai-commit
   AI_COMMIT_MAX_DIFF_CHARS=12000 scripts/ai-commit
   AI_COMMIT_LOG_COMMITS=10 scripts/ai-commit
   OPENCODE_BIN="$HOME/.opencode/bin/opencode" scripts/ai-commit
@@ -87,6 +99,9 @@ while [ "$#" -gt 0 ]; do
     --commit)
       ACTION="commit"
       ;;
+    --debug)
+      DEBUG=1
+      ;;
     *)
       printf '%s\n' "Unknown option: $1" >&2
       printf '%s\n' "Run 'scripts/ai-commit --help' to see available options." >&2
@@ -98,6 +113,14 @@ done
 
 require_command git
 require_command python3
+require_command mktemp
+
+debug_log "binary=$OPENCODE_BIN"
+debug_log "model=$MODEL"
+debug_log "agent=$AGENT"
+debug_log "action=$ACTION"
+debug_log "max_diff_chars=$MAX_DIFF_CHARS"
+debug_log "max_log_commits=$MAX_LOG_COMMITS"
 
 if [ ! -x "$OPENCODE_BIN" ]; then
   printf '%s\n' "OpenCode binary not found or not executable: $OPENCODE_BIN" >&2
@@ -108,6 +131,8 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   printf '%s\n' "This script must be run inside a git repository." >&2
   exit 1
 fi
+
+debug_log "repo_root=$(git rev-parse --show-toplevel 2>/dev/null || printf '%s' 'unknown')"
 
 DIFF=$(python3 - "$MAX_DIFF_CHARS" <<'PY'
 import subprocess
@@ -123,6 +148,8 @@ result = subprocess.run(
 print(result.stdout[:max_chars], end="")
 PY
 )
+
+debug_log "captured_diff_chars=${#DIFF}"
 
 if [ -z "$DIFF" ]; then
   printf '%s\n' "No staged changes found. Stage your changes first with 'git add'." >&2
@@ -145,6 +172,10 @@ PY
 )
 DIFF_STAT=$(git diff --cached --stat --no-color)
 RECENT_COMMITS=$(git log -${MAX_LOG_COMMITS} --pretty=format:'- %s' 2>/dev/null || true)
+
+debug_log "branch=$BRANCH"
+debug_log "staged_files=$STAGED_FILES"
+debug_log "prompt_chars_estimate=$(printf '%s' "$DIFF_STAT$RECENT_COMMITS$DIFF$STAGED_FILES$BRANCH" | python3 -c "import sys; print(len(sys.stdin.read()))")"
 
 PROMPT=$(cat <<EOF
 You are a Senior Software Engineer writing a git commit message.
@@ -192,9 +223,72 @@ $DIFF
 EOF
 )
 
-COMMIT_MESSAGE=$("$OPENCODE_BIN" run --model "$MODEL" "$PROMPT" 2>/dev/null | python3 -c "import sys; print(sys.stdin.read().strip())")
+OPENCODE_STDERR=$(mktemp)
+OPENCODE_JSON_FILE=$(mktemp)
+trap 'rm -f "$OPENCODE_STDERR" "$OPENCODE_JSON_FILE"' EXIT
+
+debug_log "opencode_stderr_file=$OPENCODE_STDERR"
+debug_log "opencode_json_file=$OPENCODE_JSON_FILE"
+
+if ! "$OPENCODE_BIN" run --agent "$AGENT" --model "$MODEL" --format json "$PROMPT" >"$OPENCODE_JSON_FILE" 2>"$OPENCODE_STDERR"; then
+  debug_log "opencode_exit=nonzero"
+  if [ -s "$OPENCODE_STDERR" ]; then
+    cat "$OPENCODE_STDERR" >&2
+  else
+    printf '%s\n' "OpenCode failed without returning an error message." >&2
+  fi
+  exit 1
+fi
+
+debug_log "opencode_exit=0"
+debug_log "opencode_json_bytes=$(python3 - "$OPENCODE_JSON_FILE" <<'PY'
+from pathlib import Path
+import sys
+print(Path(sys.argv[1]).stat().st_size)
+PY
+)"
+if [ -s "$OPENCODE_STDERR" ]; then
+  debug_log "opencode_stderr_present=yes"
+  cat "$OPENCODE_STDERR" >&2
+else
+  debug_log "opencode_stderr_present=no"
+fi
+
+COMMIT_MESSAGE=$(python3 - "$OPENCODE_JSON_FILE" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+texts = []
+
+for raw_line in Path(sys.argv[1]).read_text(errors='replace').splitlines():
+    line = raw_line.strip()
+    if not line:
+        continue
+
+    try:
+        event = json.loads(line)
+    except json.JSONDecodeError:
+        continue
+
+    if event.get("type") != "text":
+        continue
+
+    part = event.get("part") or {}
+    text = part.get("text")
+    if text:
+        texts.append(text)
+
+print("".join(texts).strip())
+PY
+)
+
+debug_log "commit_message_chars=${#COMMIT_MESSAGE}"
 
 if [ -z "$COMMIT_MESSAGE" ]; then
+  if [ -s "$OPENCODE_STDERR" ]; then
+    cat "$OPENCODE_STDERR" >&2
+  fi
   printf '%s\n' "OpenCode returned an empty commit message." >&2
   exit 1
 fi
